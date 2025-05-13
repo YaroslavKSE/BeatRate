@@ -129,6 +129,8 @@ services:
       - ConnectionStrings__PostgreSQL=Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - MongoDB__ConnectionString=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017
       - MongoDB__DatabaseName=${MONGO_DATABASE}
+      - Auth0__Domain=${AUTH0_DOMAIN}
+      - Auth0__Audience=${AUTH0_AUDIENCE}
       - Cors__AllowedOrigins__0=${FRONTEND_BASE_URL}
     ports:
       - "5003:80"

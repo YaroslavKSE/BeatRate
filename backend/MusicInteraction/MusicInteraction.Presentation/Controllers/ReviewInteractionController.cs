@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicInteraction.Application;
 
@@ -16,6 +17,7 @@ public class ReviewInteractionController : ControllerBase
     }
 
     [HttpPost("likes")]
+    [Authorize]
     public async Task<IActionResult> AddReviewLike([FromBody] AddReviewLikeCommand command)
     {
         if (string.IsNullOrEmpty(command.UserId) || command.ReviewId == Guid.Empty)
@@ -34,6 +36,7 @@ public class ReviewInteractionController : ControllerBase
     }
 
     [HttpDelete("likes")]
+    [Authorize]
     public async Task<IActionResult> RemoveReviewLike([FromQuery] Guid reviewId, [FromQuery] string userId)
     {
         if (string.IsNullOrEmpty(userId) || reviewId == Guid.Empty)
@@ -82,6 +85,7 @@ public class ReviewInteractionController : ControllerBase
     }
 
     [HttpPost("comments")]
+    [Authorize]
     public async Task<IActionResult> AddReviewComment([FromBody] AddReviewCommentCommand command)
     {
         if (string.IsNullOrEmpty(command.UserId) || command.ReviewId == Guid.Empty || string.IsNullOrWhiteSpace(command.CommentText))
@@ -100,6 +104,7 @@ public class ReviewInteractionController : ControllerBase
     }
 
     [HttpDelete("comments/{commentId}")]
+    [Authorize]
     public async Task<IActionResult> DeleteReviewComment(Guid commentId, [FromQuery] string userId)
     {
         if (string.IsNullOrEmpty(userId) || commentId == Guid.Empty)
