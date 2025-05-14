@@ -5,6 +5,7 @@ using MusicLists.Application.Commands;
 using MusicLists.Application.DTOs;
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MusicLists.Presentation.Controllers;
 
@@ -20,6 +21,7 @@ public class MusicListsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> CreateList([FromBody] CreateMusicListCommand command)
     {
         var result = await _mediator.Send(command);
@@ -33,6 +35,7 @@ public class MusicListsController : ControllerBase
     }
 
     [HttpPut("{listId:guid}")]
+    [Authorize]
     public async Task<IActionResult> UpdateList(Guid listId, [FromBody] UpdateMusicListCommand command)
     {
         if (listId != command.ListId)
@@ -51,6 +54,7 @@ public class MusicListsController : ControllerBase
     }
 
     [HttpDelete("{listId:guid}")]
+    [Authorize]
     public async Task<IActionResult> DeleteList(Guid listId)
     {
         var command = new DeleteMusicListCommand { ListId = listId };
@@ -65,6 +69,7 @@ public class MusicListsController : ControllerBase
     }
 
     [HttpPost("{listId:guid}/like")]
+    [Authorize]
     public async Task<IActionResult> AddListLike(Guid listId, [FromBody] string userId)
     {
         var command = new AddListLikeCommand
@@ -84,6 +89,7 @@ public class MusicListsController : ControllerBase
     }
 
     [HttpDelete("{listId:guid}/like")]
+    [Authorize]
     public async Task<IActionResult> RemoveListLike(Guid listId, [FromQuery] string userId)
     {
         var command = new RemoveListLikeCommand
@@ -120,10 +126,9 @@ public class MusicListsController : ControllerBase
 
         return BadRequest(result);
     }
-
-    // New endpoints for comments
-
+    
     [HttpPost("{listId:guid}/comment")]
+    [Authorize]
     public async Task<IActionResult> AddListComment(Guid listId, [FromBody] AddCommentRequest request)
     {
         var command = new AddListCommentCommand
@@ -144,6 +149,7 @@ public class MusicListsController : ControllerBase
     }
 
     [HttpDelete("comment/{commentId:guid}")]
+    [Authorize]
     public async Task<IActionResult> DeleteListComment(Guid commentId, [FromQuery] string userId)
     {
         var command = new DeleteListCommentCommand
@@ -279,6 +285,7 @@ public class MusicListsController : ControllerBase
     }
 
     [HttpPost("{listId:guid}/items/insert")]
+    [Authorize]
     public async Task<IActionResult> InsertListItem(Guid listId, [FromBody] InsertListItemRequest request)
     {
         var command = new InsertListItemCommand

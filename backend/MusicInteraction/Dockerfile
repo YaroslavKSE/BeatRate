@@ -17,6 +17,10 @@ RUN dotnet publish "MusicInteraction.Presentation/MusicInteraction.Presentation.
 # Final stage/image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
+
+# Install wget for health checks
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
+
 COPY --from=publish /app/publish .
 
 # Configure environment variables
