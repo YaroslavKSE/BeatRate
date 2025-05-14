@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicInteraction.Application;
 
@@ -16,6 +17,7 @@ public class InteractionController : ControllerBase
     }
 
     [HttpPost("create")]
+    [Authorize]
     public async Task<IActionResult> PostInteraction([FromBody] PostInteractionCommand command)
     {
         // Validate required fields
@@ -48,6 +50,7 @@ public class InteractionController : ControllerBase
     }
 
     [HttpPut("update")]
+    [Authorize]
     public async Task<IActionResult> UpdateInteraction([FromBody] UpdateInteractionCommand command)
     {
         var result = await mediator.Send(command);
@@ -297,6 +300,7 @@ public class InteractionController : ControllerBase
     }
 
     [HttpDelete("by-id/{id}")]
+    [Authorize]
     public async Task<IActionResult> DeleteInteractionById(Guid id)
     {
         var command = new DeleteInteractionCommand { InteractionId = id };
@@ -334,6 +338,7 @@ public class InteractionController : ControllerBase
     }
 
     [HttpGet("following-feed")]
+    [Authorize]
     public async Task<IActionResult> GetFollowingInteractions(
         [FromQuery] string userId,
         [FromQuery] int? limit = null,

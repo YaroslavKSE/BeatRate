@@ -81,7 +81,7 @@ services:
     networks:
       - music-app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -113,7 +113,7 @@ services:
     networks:
       - music-app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -129,6 +129,8 @@ services:
       - ConnectionStrings__PostgreSQL=Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - MongoDB__ConnectionString=mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017
       - MongoDB__DatabaseName=${MONGO_DATABASE}
+      - Auth0__Domain=${AUTH0_DOMAIN}
+      - Auth0__Audience=${AUTH0_AUDIENCE}
       - Cors__AllowedOrigins__0=${FRONTEND_BASE_URL}
     ports:
       - "5003:80"
@@ -140,7 +142,7 @@ services:
     networks:
       - music-app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -154,6 +156,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__PostgreSQL=Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
       - Cors__AllowedOrigins__0=${FRONTEND_BASE_URL}
+      - Auth0__Domain=${AUTH0_DOMAIN}
+      - Auth0__Audience=${AUTH0_AUDIENCE}
     ports:
       - "5004:80"
     depends_on:
@@ -162,7 +166,7 @@ services:
     networks:
       - music-app-network
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:80/health" ]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
       interval: 30s
       timeout: 10s
       retries: 3

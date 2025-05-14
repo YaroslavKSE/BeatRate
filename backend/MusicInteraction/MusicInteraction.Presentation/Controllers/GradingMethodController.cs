@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MusicInteraction.Application;
 
@@ -16,6 +17,7 @@ public class GradingMethodController : ControllerBase
     }
 
     [HttpPost("create")]
+    [Authorize]
     public async Task<IActionResult> CreateGradingMethod([FromBody] CreateGradingMethodCommand request)
     {
         var result = await mediator.Send(request);
@@ -71,6 +73,7 @@ public class GradingMethodController : ControllerBase
     }
 
     [HttpDelete("by-id/{id}")]
+    [Authorize]
     public async Task<IActionResult> DeleteGradingMethodById(Guid id)
     {
         var command = new DeleteGradingMethodCommand
@@ -86,7 +89,8 @@ public class GradingMethodController : ControllerBase
         return Ok();
     }
 
-    [HttpPut()]
+    [HttpPut]
+    [Authorize]
     public async Task<IActionResult> UpdateGradingMethod([FromBody] UpdateGradingMethodCommand request)
     {
         var result = await mediator.Send(request);
