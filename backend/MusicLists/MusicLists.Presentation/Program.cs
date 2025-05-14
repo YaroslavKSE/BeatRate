@@ -14,9 +14,9 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Music Interaction API",
+        Title = "Music Lists API",
         Version = "v1",
-        Description = "API for managing music interactions"
+        Description = "API for managing user curated lists"
     });
 
     // Add JWT authentication to Swagger
