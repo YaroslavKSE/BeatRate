@@ -350,4 +350,45 @@ public class Auth0Service : IAuth0Service
             // Don't throw, as role assignment is secondary to authentication
         }
     }
+    public async Task<AuthTokenResponse> RefreshTokenAsync(string refreshToken)
+    {
+        try
+        {
+            var tokenRequest = new Auth0RefreshTokenRequest
+            {
+                ClientId = _settings.ClientId,
+                ClientSecret = _settings.ClientSecret,
+                RefreshToken = refreshToken,
+                GrantType = "refresh_token"
+            };
+
+            var response = await _httpClient.PostAsJsonAsync(
+                $"https://{_settings.Domain}/oauth/token",
+                tokenRequest);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Token refresh failed. Status: {Status}, Error: {Error}",
+                    response.StatusCode, error);
+                throw new Auth0Exception(error);
+            }
+
+            var auth0Response = await response.Content.ReadFromJsonAsync<Auth0TokenResponse>();
+
+            // Map to application layer DTO
+            return new AuthTokenResponse
+            {
+                AccessToken = auth0Response.AccessToken,
+                RefreshToken = auth0Response.RefreshToken,
+                ExpiresIn = auth0Response.ExpiresIn,
+                TokenType = auth0Response.TokenType
+            };
+        }
+        catch (Exception ex) when (ex is not Auth0Exception)
+        {
+            _logger.LogError(ex, "Error during token refresh");
+            throw new Auth0Exception("Token refresh failed", ex);
+        }
+    }
 }
