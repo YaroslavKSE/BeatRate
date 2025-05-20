@@ -18,6 +18,10 @@ export interface LoginParams {
   password: string;
 }
 
+export interface RefreshTokenParams {
+  refreshToken: string;
+}
+
 export interface SocialLoginParams {
   accessToken: string;
   provider: string;
@@ -69,6 +73,20 @@ export interface UpdateBioRequest {
   bio: string;
 }
 
+// Calculate token expiration timestamp based on expiresIn value (in seconds)
+const calculateExpiresAt = (expiresIn: number): number => {
+  return Date.now() + expiresIn * 1000;
+};
+
+// Store token information with expiration
+const storeTokenInfo = (response: LoginResponse) => {
+  localStorage.setItem('token', response.accessToken);
+  localStorage.setItem('refreshToken', response.refreshToken);
+
+  // Calculate and store token expiration timestamp
+  const expiresAt = calculateExpiresAt(response.expiresIn);
+  localStorage.setItem('expiresAt', expiresAt.toString());
+};
 
 const AuthService = {
   register: async (params: RegisterParams): Promise<AuthResponse> => {
@@ -78,18 +96,32 @@ const AuthService = {
 
   login: async (params: LoginParams): Promise<LoginResponse> => {
     const response = await authApi.post('/login', params);
-    // Store the token and refresh token in localStorage
-    localStorage.setItem('token', response.data.accessToken);
-    localStorage.setItem('refreshToken', response.data.refreshToken);
+    // Store the token, refresh token, and expiration
+    storeTokenInfo(response.data);
+    return response.data;
+  },
+
+  // New method to refresh the token
+  refreshToken: async (): Promise<LoginResponse> => {
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await authApi.post('/refresh-token', { refreshToken });
+
+    // Store the new token, refresh token, and expiration
+    storeTokenInfo(response.data);
+
     return response.data;
   },
 
   // Handle social login with Auth0 (including Google)
   socialLogin: async (params: SocialLoginParams): Promise<LoginResponse> => {
     const response = await authApi.post('/social-login', params);
-    // Store the token and refresh token in localStorage
-    localStorage.setItem('token', response.data.accessToken);
-    localStorage.setItem('refreshToken', response.data.refreshToken);
+    // Store the token, refresh token, and expiration
+    storeTokenInfo(response.data);
     return response.data;
   },
 
@@ -105,10 +137,11 @@ const AuthService = {
       }
     }
 
-    // Always clean up local storage regardless of server response
+    // Clean up local storage
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('expiresAt');
   },
 
   getCurrentUser: async (): Promise<UserProfile> => {
@@ -131,6 +164,15 @@ const AuthService = {
 
   getToken: (): string | null => {
     return localStorage.getItem('token');
+  },
+
+  // Check if the current token is expired or will expire soon
+  isTokenExpiringSoon: (bufferSeconds: number = 300): boolean => {
+    const expiresAtStr = localStorage.getItem('expiresAt');
+    if (!expiresAtStr) return true;
+
+    const expiresAt = parseInt(expiresAtStr, 10);
+    return Date.now() + bufferSeconds * 1000 >= expiresAt;
   },
 
   // Avatar related functions
