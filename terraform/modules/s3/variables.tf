@@ -6,6 +6,7 @@ variable "environment" {
 variable "bucket_name" {
   description = "Name of the S3 bucket for frontend files"
   type        = string
+  default     = "beatrate-frontend-bucket"
 }
 
 variable "frontend_project_path" {

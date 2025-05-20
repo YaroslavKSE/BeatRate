@@ -11,6 +11,21 @@ resource "aws_security_group" "rds_sg" {
     security_groups = var.allowed_security_group_ids
     description     = "Allow PostgreSQL traffic from specified security groups"
   }
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [var.private_subnet_cidr_a]
+    description = "Allow PostgreSQL traffic from private subnet A"
+  }
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [var.private_subnet_cidr_b]
+    description = "Allow PostgreSQL traffic from private subnet B"
+  }
 
   # No direct outbound access needed for RDS
   egress {
@@ -60,12 +75,11 @@ resource "aws_ssm_parameter" "db_password" {
   tags = var.common_tags
 }
 
-# Create a PostgreSQL connection string parameter
 resource "aws_ssm_parameter" "db_connection_string" {
   name        = "/${var.environment}/database/connection_string"
   description = "PostgreSQL connection string for ${var.db_name}"
   type        = "SecureString"
-  value       = "Host=${aws_db_instance.main.endpoint};Database=${var.db_name};Username=${var.db_username};Password=${random_password.db_password.result}"
+  value       = "Host=${aws_db_instance.main.address};Port=${aws_db_instance.main.port};Database=${var.db_name};Username=${var.db_username};Password=${random_password.db_password.result}"
 
   tags = var.common_tags
 }
