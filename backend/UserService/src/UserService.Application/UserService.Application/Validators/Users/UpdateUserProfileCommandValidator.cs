@@ -32,7 +32,7 @@ public class UpdateUserProfileCommandValidator : AbstractValidator<UpdateUserPro
             RuleFor(x => x.Surname)
                 .MaximumLength(100);
         });
-        
+
         // Add validation for the bio field
         When(x => x.Bio != null, () =>
         {

@@ -350,6 +350,7 @@ public class Auth0Service : IAuth0Service
             // Don't throw, as role assignment is secondary to authentication
         }
     }
+
     public async Task<AuthTokenResponse> RefreshTokenAsync(string refreshToken)
     {
         try

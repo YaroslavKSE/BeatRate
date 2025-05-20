@@ -9,7 +9,7 @@ using UserService.Domain.Interfaces;
 
 namespace UserService.Application.Handlers.Preferences;
 
-public class GetUserPreferencesByUsernameQueryHandler : 
+public class GetUserPreferencesByUsernameQueryHandler :
     IRequestHandler<GetUserPreferencesByUsernameQuery, UserPreferencesResponse>
 {
     private readonly IUserRepository _userRepository;
@@ -29,7 +29,7 @@ public class GetUserPreferencesByUsernameQueryHandler :
         _validator = validator;
     }
 
-    public async Task<UserPreferencesResponse> Handle(GetUserPreferencesByUsernameQuery request, 
+    public async Task<UserPreferencesResponse> Handle(GetUserPreferencesByUsernameQuery request,
         CancellationToken cancellationToken)
     {
         // Validate the query
