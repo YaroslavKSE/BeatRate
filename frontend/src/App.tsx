@@ -7,6 +7,7 @@ import './App.css';
 // Layout Components
 import MainLayout from './components/layout/MainLayout';
 import LoadingIndicator from './components/common/LoadingIndicator';
+import TokenRefreshManager from './components/auth/TokenRefreshManager';
 
 // Page Components
 import Home from './pages/Home';
@@ -90,7 +91,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 };
 
 function App() {
-    const { initializeAuth} = useAuthStore();
+    const { initializeAuth } = useAuthStore();
     const [isInitializing, setIsInitializing] = useState(true);
 
     useEffect(() => {
@@ -115,6 +116,9 @@ function App() {
 
     return (
         <Router>
+            {/* Add TokenRefreshManager to handle token refreshing globally */}
+            <TokenRefreshManager />
+
             <Routes>
                 {/* Auth0 callback route - outside MainLayout */}
                 <Route path="/callback" element={<AuthCallback />} />

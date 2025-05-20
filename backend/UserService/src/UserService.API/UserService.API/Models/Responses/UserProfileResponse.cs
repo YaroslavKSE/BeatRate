@@ -11,6 +11,6 @@ public class UserProfileResponse
 
     public string AvatarUrl { get; set; }
     public string Bio { get; set; }
-    
+
     public DateTime CreatedAt { get; set; }
 }

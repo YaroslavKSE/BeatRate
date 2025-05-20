@@ -8,7 +8,7 @@ interface AuthState {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  authInitialized: boolean; // New state to track if auth has been initialized
+  authInitialized: boolean; // State to track if auth has been initialized
   error: string | null;
 
   // Actions
@@ -16,13 +16,14 @@ interface AuthState {
   socialLogin: (accessToken: string, provider: string) => Promise<void>;
   register: (email: string, password: string, name: string, surname: string, username: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshToken: () => Promise<boolean>; // New action to refresh the token
   clearError: () => void;
   setUser: (user: UserProfile | null) => void;
   fetchUserProfile: () => Promise<void>;
   updateProfile: (params: UpdateProfileParams) => Promise<void>;
   updateBio: (bio: string) => Promise<void>;
   deleteBio: () => Promise<void>;
-  initializeAuth: () => Promise<void>; // New action to initialize auth state
+  initializeAuth: () => Promise<void>; // Action to initialize auth state
 }
 
 const useAuthStore = create<AuthState>((set, get) => ({
@@ -48,6 +49,27 @@ const useAuthStore = create<AuthState>((set, get) => ({
 
       if (hasToken) {
         try {
+          // If token is expiring soon, refresh it
+          if (AuthService.isTokenExpiringSoon()) {
+            try {
+              await get().refreshToken();
+            } catch (refreshError) {
+              console.error('Token refresh error during init:', refreshError);
+              // If refresh fails during init, clear auth state
+              localStorage.removeItem('token');
+              localStorage.removeItem('refreshToken');
+              localStorage.removeItem('expiresAt');
+              localStorage.removeItem('user');
+              set({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                authInitialized: true
+              });
+              return;
+            }
+          }
+
           // Try to get user from localStorage first
           const storedUser = localStorage.getItem('user');
           if (storedUser) {
@@ -73,6 +95,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
           console.error('Error getting user profile during init:', error);
           localStorage.removeItem('token');
           localStorage.removeItem('refreshToken');
+          localStorage.removeItem('expiresAt');
           localStorage.removeItem('user');
           set({
             user: null,
@@ -152,6 +175,32 @@ const useAuthStore = create<AuthState>((set, get) => ({
         error: errorMessage
       });
       throw error;
+    }
+  },
+
+  // New method to refresh the token
+  refreshToken: async () => {
+    try {
+      await AuthService.refreshToken();
+      set({ isAuthenticated: true });
+      return true;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+
+      // If refresh fails, clear auth state
+      set({
+        user: null,
+        isAuthenticated: false,
+        error: 'Session expired. Please login again.'
+      });
+
+      // Clean up storage
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('expiresAt');
+      localStorage.removeItem('user');
+
+      return false;
     }
   },
 
@@ -387,6 +436,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
     // Clear authentication state on failure
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('expiresAt');
     localStorage.removeItem('user');
 
     set({
