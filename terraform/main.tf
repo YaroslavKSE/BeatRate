@@ -123,8 +123,8 @@ module "rds" {
   subnet_ids                 = module.vpc.private_subnet_ids
   allowed_security_group_ids = [module.alb.ecs_tasks_security_group_id]
 
-  private_subnet_cidr_a      = local.config.private_subnet_cidr_a
-  private_subnet_cidr_b      = local.config.private_subnet_cidr_b
+  private_subnet_cidr_a = local.config.private_subnet_cidr_a
+  private_subnet_cidr_b = local.config.private_subnet_cidr_b
 
   # Database settings
   db_name               = var.rds_database_name

@@ -117,3 +117,9 @@ variable "private_subnet_cidr_b" {
   description = "CIDR block for private subnet B"
   type        = string
 }
+
+variable "final_snapshot_identifier" {
+  description = "The name of the final snapshot when destroying the instance (if skip_final_snapshot is false)"
+  type        = string
+  default     = null
+}

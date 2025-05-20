@@ -218,8 +218,8 @@ resource "aws_iam_policy" "user_service_s3_policy" {
         Resource = "arn:aws:s3:::${var.avatar_bucket_name}/*"
       },
       {
-        Effect = "Allow"
-        Action = "s3:ListBucket"
+        Effect   = "Allow"
+        Action   = "s3:ListBucket"
         Resource = "arn:aws:s3:::${var.avatar_bucket_name}"
       }
     ]
@@ -243,7 +243,7 @@ module "user_service" {
   common_tags = var.common_tags
 
   ecs_task_execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
-  ecs_task_role_arn           = aws_iam_role.user_service_task_role.arn  # Use the specific role with S3 permissions
+  ecs_task_role_arn           = aws_iam_role.user_service_task_role.arn # Use the specific role with S3 permissions
 
   cloudwatch_log_group_name = aws_cloudwatch_log_group.ecs_logs["user-service"].name
 
