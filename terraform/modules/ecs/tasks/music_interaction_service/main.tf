@@ -46,7 +46,7 @@ resource "aws_ecs_task_definition" "music_interaction_service" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -q -O - http://localhost/health || exit 1"]
+        command     = ["CMD-SHELL", "wget --no-verbose --spider http://localhost/health || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3

@@ -114,37 +114,6 @@ module "route53" {
   depends_on = [module.cloudfront, module.alb]
 }
 
-resource "aws_security_group" "ecs_tasks_sg" {
-  name        = "${local.environment}-ecs-tasks-sg"
-  description = "Security group for ECS tasks"
-  vpc_id      = module.vpc.vpc_id
-
-  # Allow inbound from ALB
-  ingress {
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    security_groups = [module.alb.security_group_id]
-    description     = "Allow HTTP traffic from ALB"
-  }
-
-  # Allow outbound internet access
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow all outbound traffic"
-  }
-
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${local.environment}-ecs-tasks-sg"
-    }
-  )
-}
-
 # RDS Database module
 module "rds" {
   source = "./modules/rds"
@@ -152,7 +121,7 @@ module "rds" {
   environment                = local.environment
   vpc_id                     = module.vpc.vpc_id
   subnet_ids                 = module.vpc.private_subnet_ids
-  allowed_security_group_ids = [aws_security_group.ecs_tasks_sg.id]
+  allowed_security_group_ids = [module.alb.ecs_tasks_security_group_id]
 
   # Database settings
   db_name               = var.rds_database_name
@@ -183,7 +152,7 @@ module "redis" {
   environment                = local.environment
   vpc_id                     = module.vpc.vpc_id
   subnet_ids                 = module.vpc.private_subnet_ids
-  allowed_security_group_ids = [aws_security_group.ecs_tasks_sg.id]
+  allowed_security_group_ids = [module.alb.ecs_tasks_security_group_id]
 
   # Redis settings
   node_type     = local.environment == "prod" ? "cache.t3.small" : "cache.t3.micro" # Near free tier
@@ -229,7 +198,7 @@ module "mongodb" {
   # VPC settings
   vpc_id                     = module.vpc.vpc_id
   private_subnet_ids         = module.vpc.private_subnet_ids
-  allowed_security_group_ids = [aws_security_group.ecs_tasks_sg.id]
+  allowed_security_group_ids = [module.alb.ecs_tasks_security_group_id]
 
   common_tags = local.common_tags
 }
@@ -290,13 +259,14 @@ module "ecs" {
   region                                     = var.region
   name                                       = var.project_name
   domain_name                                = var.domain_name
-  ecs_security_group                         = [aws_security_group.ecs_tasks_sg.id]
+  alb_security_group_id                      = module.alb.security_group_id
   vpc_id                                     = module.vpc.vpc_id
   private_subnet_ids                         = module.vpc.private_subnet_ids
-  alb_security_group_id                      = module.alb.security_group_id
+  ecs_security_group                         = [module.alb.security_group_id]
   user_service_target_group_arn              = module.alb.user_service_target_group_arn
   music_catalog_service_target_group_arn     = module.alb.music_catalog_target_group_arn
   music_interaction_service_target_group_arn = module.alb.rating_service_target_group_arn
+  music_lists_service_target_group_arn       = module.alb.music_lists_target_group_arn
 
   # RDS configuration - passing parameter store variables that the tasks will access
   # rds_address_parameter                = "/${local.environment}/database/address"
@@ -341,6 +311,17 @@ module "ecs" {
     db_name            = var.music_interaction_db_name
   }
 
+  music_lists_service_config = {
+    ecr_repository_url = var.music_lists_service_repository_url
+    image_tag          = var.music_lists_service_image_tag
+    cpu                = var.music_lists_service_cpu
+    memory             = var.music_lists_service_memory
+    desired_count      = var.music_lists_service_desired_count
+    min_capacity       = var.music_lists_service_min_capacity
+    max_capacity       = var.music_lists_service_max_capacity
+    db_name            = var.music_lists_db_name
+  }
+
   auth0_domain                  = module.ssm_parameters.parameter_arns["auth0/domain"]
   auth0_client_id               = module.ssm_parameters.parameter_arns["auth0/client_id"]
   auth0_client_secret           = module.ssm_parameters.parameter_arns["auth0/client_secret"]
@@ -349,6 +330,9 @@ module "ecs" {
 
   spotify_client_id     = module.ssm_parameters.parameter_arns["spotify/client_id"]
   spotify_client_secret = module.ssm_parameters.parameter_arns["spotify/client_secret"]
+
+  avatar_bucket_name = "beatrate-avatar-s3"
+  avatar_base_url    = "https://beatrate-avatar-s3.s3.amazonaws.com"
 
   common_tags = local.common_tags
 

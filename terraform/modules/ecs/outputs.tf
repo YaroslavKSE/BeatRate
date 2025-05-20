@@ -57,3 +57,13 @@ output "music_interaction_service_name" {
   description = "The name of the Music Interaction Service"
   value       = aws_ecs_service.music_interaction_service.name
 }
+
+output "music_lists_service_task_definition_arn" {
+  description = "The ARN of the Music Lists Service task definition"
+  value       = module.music_lists_service.task_definition_arn
+}
+
+output "music_lists_service_name" {
+  description = "The name of the Music Lists Service"
+  value       = aws_ecs_service.music_lists_service.name
+}

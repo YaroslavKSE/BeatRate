@@ -1,5 +1,5 @@
-resource "aws_ecs_task_definition" "music_catalog_service" {
-  family                   = "${var.environment}-music-catalog-service"
+resource "aws_ecs_task_definition" "music_lists_service" {
+  family                   = "${var.environment}-music-lists-service"
   execution_role_arn       = var.ecs_task_execution_role_arn
   task_role_arn            = var.ecs_task_role_arn
   network_mode             = "awsvpc"
@@ -9,7 +9,7 @@ resource "aws_ecs_task_definition" "music_catalog_service" {
 
   container_definitions = jsonencode([
     {
-      name      = "music-catalog-service"
+      name      = "music-lists-service"
       image     = "${var.service_config.ecr_repository_url}:${var.service_config.image_tag}"
       essential = true
 
@@ -24,18 +24,17 @@ resource "aws_ecs_task_definition" "music_catalog_service" {
       # Standard environment variables
       environment = [
         { name = "ASPNETCORE_ENVIRONMENT", value = var.environment == "prod" ? "Production" : "Development" },
+        # CORS configuration
         { name = "Cors__AllowedOrigins__0", value = var.environment == "prod" ? "https://${var.domain_name}" : "https://dev.${var.domain_name}" },
       ]
 
       # Access secrets from parameter store
       secrets = [
-        # MongoDB connection string
-        { name = "MongoDb__ConnectionString", valueFrom = var.mongodb_connection_string_parameter },
-        # Redis connection string
-        { name = "ConnectionStrings__Redis", valueFrom = var.redis_connection_string_parameter },
-        # Spotify API credentials
-        { name = "Spotify__ClientId", valueFrom = var.spotify_client_id },
-        { name = "Spotify__ClientSecret", valueFrom = var.spotify_client_secret }
+        # PostgreSQL connection string
+        { name = "ConnectionStrings__PostgreSQL", valueFrom = var.postgres_connection_string_parameter },
+        # Auth0 credentials
+        { name = "Auth0__Domain", valueFrom = var.auth0_domain },
+        { name = "Auth0__Audience", valueFrom = var.auth0_audience }
       ]
 
       logConfiguration = {
@@ -43,10 +42,11 @@ resource "aws_ecs_task_definition" "music_catalog_service" {
         options = {
           "awslogs-group"         = var.cloudwatch_log_group_name
           "awslogs-region"        = var.region
-          "awslogs-stream-prefix" = "music-catalog-service"
+          "awslogs-stream-prefix" = "music-lists-service"
         }
       }
 
+      # Updated health check to use wget
       healthCheck = {
         command     = ["CMD-SHELL", "wget --no-verbose --spider http://localhost/health || exit 1"]
         interval    = 30
@@ -60,7 +60,7 @@ resource "aws_ecs_task_definition" "music_catalog_service" {
   tags = merge(
     var.common_tags,
     {
-      Name = "${var.environment}-music-catalog-service"
+      Name = "${var.environment}-music-lists-service"
     }
   )
 }

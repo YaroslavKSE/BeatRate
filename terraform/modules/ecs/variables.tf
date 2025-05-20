@@ -43,7 +43,7 @@ variable "alb_security_group_id" {
 variable "services" {
   description = "List of service names"
   type        = list(string)
-  default     = ["user-service", "music-catalog-service", "music-interaction-service"]
+  default     = ["user-service", "music-catalog-service", "music-interaction-service", "music-lists-service"]
 }
 
 variable "log_retention_days" {
@@ -64,6 +64,16 @@ variable "user_service_config" {
     max_capacity       = number
     db_name            = string
   })
+}
+
+variable "avatar_bucket_name" {
+  description = "Name of the S3 bucket for user avatars"
+  type        = string
+}
+
+variable "avatar_base_url" {
+  description = "Base URL for accessing avatar images"
+  type        = string
 }
 
 variable "music_catalog_service_config" {
@@ -93,6 +103,20 @@ variable "music_interaction_service_config" {
   })
 }
 
+variable "music_lists_service_config" {
+  description = "Configuration for the Music Lists Service"
+  type = object({
+    ecr_repository_url = string
+    image_tag          = string
+    cpu                = number
+    memory             = number
+    desired_count      = number
+    min_capacity       = number
+    max_capacity       = number
+    db_name            = string
+  })
+}
+
 variable "user_service_target_group_arn" {
   description = "ARN of the user service target group"
   type        = string
@@ -105,6 +129,11 @@ variable "music_catalog_service_target_group_arn" {
 
 variable "music_interaction_service_target_group_arn" {
   description = "ARN of the music interaction service target group"
+  type        = string
+}
+
+variable "music_lists_service_target_group_arn" {
+  description = "ARN of the music lists service target group"
   type        = string
 }
 

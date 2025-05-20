@@ -27,6 +27,12 @@ resource "aws_ecs_task_definition" "user_service" {
 
         # CORS configuration
         { name = "Cors__AllowedOrigins__0", value = var.environment == "prod" ? "https://${var.domain_name}" : "https://dev.${var.domain_name}" },
+        # AWS Region
+        { name = "AWS__REGION", value = var.region },
+        # Avatar Base URL (through CloudFront or direct S3)
+        { name = "AWS__AvatarBaseUrl", value = var.avatar_base_url },
+        # Avatar Bucket Name
+        { name = "AWS__AvatarBucketName", value = var.avatar_bucket_name }
       ]
       # Access connection strings from parameter store
       secrets = [
@@ -52,7 +58,7 @@ resource "aws_ecs_task_definition" "user_service" {
       }
 
       healthCheck = {
-        command     = ["CMD-SHELL", "wget -q -O - http://localhost/health || exit 1"]
+        command     = ["CMD-SHELL", "wget --no-verbose --spider http://localhost/health || exit 1"]
         interval    = 30
         timeout     = 5
         retries     = 3

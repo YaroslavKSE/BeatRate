@@ -4,11 +4,15 @@ variable "region" {
   default     = "us-east-1"
 }
 
+### ---- General settings ---- ###
+
 variable "project_name" {
   description = "Name of the project"
   type        = string
   default     = "imdb-for-music"
 }
+
+### ---- Frontend settings ---- ###
 
 variable "frontend_project_path" {
   description = "Path to the frontend project directory"
@@ -27,6 +31,14 @@ variable "force_destroy_s3" {
   type        = bool
   default     = true
 }
+
+variable "bucket_name" {
+  description = "Name of the S3 bucket for frontend files"
+  type        = string
+  default     = "beatrate-frontend-bucket"
+}
+
+### ---- DNS settings ---- ###
 
 variable "domain_name" {
   description = "Domain name for the application"
@@ -52,6 +64,8 @@ variable "create_api_records" {
   type        = bool
   default     = true
 }
+
+### ---- RDS DB settings ---- ###
 
 variable "rds_instance_class" {
   type = map(string)
@@ -89,12 +103,14 @@ variable "rds_username" {
   type        = string
 }
 
+### ---- Redis Cache settings ---- ###
+
 variable "redis_node_type" {
   description = "Redis node type"
   type        = string
 }
 
-# MongoDB Atlas Credentials
+### ---- MongoDB Atlas settings ---- ###
 variable "mongo_atlas_project_id" {
   description = "MongoDB Atlas project ID"
   type        = string
@@ -155,9 +171,7 @@ variable "mongodb_username" {
   default     = "app_user"
 }
 
-# Add these variables to your existing variables.tf file
-
-# ECR Repository URLs (pre-created)
+### ---- ECR Repository URLs (pre-created) ---- ###
 variable "user_service_repository_url" {
   description = "ECR repository URL for user service"
   type        = string
@@ -170,6 +184,11 @@ variable "music_catalog_service_repository_url" {
 
 variable "music_interaction_service_repository_url" {
   description = "ECR repository URL for music interaction service"
+  type        = string
+}
+
+variable "music_lists_service_repository_url" {
+  description = "ECR repository URL for music lists service"
   type        = string
 }
 
@@ -192,7 +211,7 @@ variable "music_interaction_service_image_tag" {
   default     = "latest"
 }
 
-# Resource allocations
+#### ---- User Service Configuration ---- ####
 variable "user_service_cpu" {
   description = "CPU units for user service"
   type        = number
@@ -223,6 +242,8 @@ variable "user_service_max_capacity" {
   default     = 3
 }
 
+#### ---- Music Catalog Service Configuration ---- ####
+
 variable "music_catalog_service_cpu" {
   description = "CPU units for music catalog service"
   type        = number
@@ -252,6 +273,18 @@ variable "music_catalog_service_max_capacity" {
   type        = number
   default     = 3
 }
+
+variable "avatar_bucket_name" {
+  description = "Name of the S3 bucket for user avatars"
+  type        = string
+}
+
+variable "avatar_base_url" {
+  description = "Base URL for accessing avatar images"
+  type        = string
+}
+
+#### ---- Music Interaction Service Configuration ---- ####
 
 variable "music_interaction_service_cpu" {
   description = "CPU units for music interaction service"
@@ -289,7 +322,52 @@ variable "music_interaction_db_name" {
   default     = "musicinteraction"
 }
 
-# Application secrets - Auth0
+#### ---- Music Lists Service Configuration ---- ####
+
+variable "music_lists_service_image_tag" {
+  description = "Image tag for music lists service"
+  type        = string
+  default     = "latest"
+}
+
+variable "music_lists_service_cpu" {
+  description = "CPU units for music lists service"
+  type        = number
+  default     = 256
+}
+
+variable "music_lists_service_memory" {
+  description = "Memory for music lists service (MiB)"
+  type        = number
+  default     = 512
+}
+
+variable "music_lists_service_desired_count" {
+  description = "Desired number of music lists service tasks"
+  type        = number
+  default     = 1
+}
+
+variable "music_lists_service_min_capacity" {
+  description = "Minimum number of music lists service tasks"
+  type        = number
+  default     = 1
+}
+
+variable "music_lists_service_max_capacity" {
+  description = "Maximum number of music lists service tasks"
+  type        = number
+  default     = 3
+}
+
+variable "music_lists_db_name" {
+  description = "Name of the database for music lists service"
+  type        = string
+  default     = "musiclists"
+}
+
+#### ---- Application secrets (Auth0) ---- ####
+
 variable "auth0_domain" {
   description = "Auth0 Domain"
   type        = string
@@ -320,7 +398,8 @@ variable "auth0_management_api_audience" {
   sensitive   = true
 }
 
-# Application secrets - Spotify
+#### ---- Application secrets (Spotify) ---- ####
+
 variable "spotify_client_id" {
   description = "Spotify Client ID"
   type        = string

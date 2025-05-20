@@ -17,13 +17,13 @@ variable "cloudfront_hosted_zone_id" {
 variable "enable_ipv6" {
   description = "Whether to create AAAA records for IPv6 support"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "create_www_subdomain" {
   description = "Whether to create records for the www subdomain"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "create_api_records" {

@@ -127,6 +127,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_ssm_policy_attachment" {
 }
 
 # IAM Role for ECS Task
+# Base task role (without S3 permissions) for other services
 resource "aws_iam_role" "ecs_task_role" {
   name = "${var.environment}-ecs-task-role"
 
@@ -146,7 +147,7 @@ resource "aws_iam_role" "ecs_task_role" {
   tags = var.common_tags
 }
 
-# Policy for task role - minimal permissions for now
+# Basic permissions for all tasks
 resource "aws_iam_policy" "ecs_task_role_policy" {
   name        = "${var.environment}-ecs-task-role-policy"
   description = "Policy for ECS Task Role"
@@ -173,6 +174,66 @@ resource "aws_iam_role_policy_attachment" "ecs_task_role_policy_attachment" {
   policy_arn = aws_iam_policy.ecs_task_role_policy.arn
 }
 
+# User Service specific task role with S3 permissions
+resource "aws_iam_role" "user_service_task_role" {
+  name = "${var.environment}-user-service-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = var.common_tags
+}
+
+# Attach the base policy to user service role too
+resource "aws_iam_role_policy_attachment" "user_service_base_policy_attachment" {
+  role       = aws_iam_role.user_service_task_role.name
+  policy_arn = aws_iam_policy.ecs_task_role_policy.arn
+}
+
+# S3 policy specifically for the user service
+resource "aws_iam_policy" "user_service_s3_policy" {
+  name        = "${var.environment}-user-service-s3-policy"
+  description = "S3 Policy for User Service Avatar uploads"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:DeleteObject"
+        ]
+        Resource = "arn:aws:s3:::${var.avatar_bucket_name}/*"
+      },
+      {
+        Effect = "Allow"
+        Action = "s3:ListBucket"
+        Resource = "arn:aws:s3:::${var.avatar_bucket_name}"
+      }
+    ]
+  })
+
+  tags = var.common_tags
+}
+
+# Attach the S3 policy to the user service role
+resource "aws_iam_role_policy_attachment" "user_service_s3_policy_attachment" {
+  role       = aws_iam_role.user_service_task_role.name
+  policy_arn = aws_iam_policy.user_service_s3_policy.arn
+}
+
 # Import submodules with individual task definitions
 module "user_service" {
   source = "./tasks/user_service"
@@ -182,12 +243,15 @@ module "user_service" {
   common_tags = var.common_tags
 
   ecs_task_execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
-  ecs_task_role_arn           = aws_iam_role.ecs_task_role.arn
+  ecs_task_role_arn           = aws_iam_role.user_service_task_role.arn  # Use the specific role with S3 permissions
 
   cloudwatch_log_group_name = aws_cloudwatch_log_group.ecs_logs["user-service"].name
 
   service_config = var.user_service_config
   domain_name    = var.domain_name
+
+  avatar_bucket_name = var.avatar_bucket_name
+  avatar_base_url    = var.avatar_base_url
 
   # Connection string parameter
   postgres_connection_string_parameter = var.postgres_connection_string_parameter
@@ -242,6 +306,29 @@ module "music_interaction_service" {
   # Connection string parameters
   postgres_connection_string_parameter = var.postgres_connection_string_parameter
   mongodb_connection_string_parameter  = var.mongodb_connection_string_parameter
+}
+
+module "music_lists_service" {
+  source = "./tasks/music_lists_service"
+
+  environment = var.environment
+  region      = var.region
+  common_tags = var.common_tags
+
+  ecs_task_execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  ecs_task_role_arn           = aws_iam_role.ecs_task_role.arn
+
+  cloudwatch_log_group_name = aws_cloudwatch_log_group.ecs_logs["music-lists-service"].name
+
+  service_config = var.music_lists_service_config
+  domain_name    = var.domain_name
+
+  # Connection string parameters
+  postgres_connection_string_parameter = var.postgres_connection_string_parameter
+
+  # Auth0 credentials
+  auth0_domain   = var.auth0_domain
+  auth0_audience = var.auth0_audience
 }
 
 # ECS Services
@@ -349,6 +436,42 @@ resource "aws_ecs_service" "music_interaction_service" {
     }
   )
 }
+
+resource "aws_ecs_service" "music_lists_service" {
+  name                               = "${var.environment}-music-lists-service"
+  cluster                            = aws_ecs_cluster.main.id
+  task_definition                    = module.music_lists_service.task_definition_arn
+  desired_count                      = var.music_lists_service_config.desired_count
+  launch_type                        = "FARGATE"
+  platform_version                   = "LATEST"
+  health_check_grace_period_seconds  = 60
+  deployment_minimum_healthy_percent = 100
+  deployment_maximum_percent         = 200
+
+  network_configuration {
+    security_groups  = var.ecs_security_group
+    subnets          = var.private_subnet_ids
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = var.music_lists_service_target_group_arn
+    container_name   = "music-lists-service"
+    container_port   = 80
+  }
+
+  lifecycle {
+    ignore_changes = [desired_count]
+  }
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name = "${var.environment}-music-lists-service"
+    }
+  )
+}
+
 
 # Auto Scaling Configuration
 resource "aws_appautoscaling_target" "user_service" {
@@ -466,6 +589,49 @@ resource "aws_appautoscaling_policy" "music_interaction_service_memory" {
   resource_id        = aws_appautoscaling_target.music_interaction_service.resource_id
   scalable_dimension = aws_appautoscaling_target.music_interaction_service.scalable_dimension
   service_namespace  = aws_appautoscaling_target.music_interaction_service.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    }
+    target_value       = 80.0
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 60
+  }
+}
+
+# Auto-scaling configuration for music-lists-service
+resource "aws_appautoscaling_target" "music_lists_service" {
+  max_capacity       = var.music_lists_service_config.max_capacity
+  min_capacity       = var.music_lists_service_config.min_capacity
+  resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.music_lists_service.name}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "music_lists_service_cpu" {
+  name               = "${var.environment}-music-lists-service-cpu-autoscaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.music_lists_service.resource_id
+  scalable_dimension = aws_appautoscaling_target.music_lists_service.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.music_lists_service.service_namespace
+
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    }
+    target_value       = 70.0
+    scale_in_cooldown  = 300
+    scale_out_cooldown = 60
+  }
+}
+
+resource "aws_appautoscaling_policy" "music_lists_service_memory" {
+  name               = "${var.environment}-music-lists-service-memory-autoscaling"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.music_lists_service.resource_id
+  scalable_dimension = aws_appautoscaling_target.music_lists_service.scalable_dimension
+  service_namespace  = aws_appautoscaling_target.music_lists_service.service_namespace
 
   target_tracking_scaling_policy_configuration {
     predefined_metric_specification {

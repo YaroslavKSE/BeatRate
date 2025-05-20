@@ -57,36 +57,8 @@ variable "auth0_domain" {
   sensitive   = true
 }
 
-variable "auth0_client_id" {
-  description = "Auth0 Client ID parameter ARN in SSM"
-  type        = string
-  sensitive   = true
-}
-
-variable "auth0_client_secret" {
-  description = "Auth0 Client Secret parameter ARN in SSM"
-  type        = string
-  sensitive   = true
-}
-
 variable "auth0_audience" {
   description = "Auth0 Audience parameter ARN in SSM"
   type        = string
   sensitive   = true
-}
-
-variable "auth0_management_api_audience" {
-  description = "Auth0 Management API Audience parameter ARN in SSM"
-  type        = string
-  sensitive   = true
-}
-
-variable "avatar_bucket_name" {
-  description = "Name of the S3 bucket for user avatars"
-  type        = string
-}
-
-variable "avatar_base_url" {
-  description = "Base URL for accessing avatar images"
-  type        = string
 }
