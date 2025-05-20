@@ -304,4 +304,66 @@ public class AuthController : ControllerBase
                 });
         }
     }
+
+    [HttpPost("refresh-token")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        try
+        {
+            _logger.LogInformation("Processing refresh token request");
+
+            var command = new RefreshTokenCommand(request.RefreshToken);
+            var result = await _mediator.Send(command);
+
+            var response = new LoginResponse
+            {
+                AccessToken = result.AccessToken,
+                RefreshToken = result.RefreshToken,
+                ExpiresIn = result.ExpiresIn,
+                TokenType = result.TokenType
+            };
+
+            return Ok(response);
+        }
+        catch (ValidationException ex)
+        {
+            _logger.LogWarning("Validation failed during token refresh: {Errors}",
+                string.Join(", ", ex.Errors.Select(e => e.ErrorMessage)));
+
+            return BadRequest(new ErrorResponse
+            {
+                Code = "ValidationError",
+                Message = string.Join("; ", ex.Errors.Select(e => e.ErrorMessage)),
+                TraceId = HttpContext.TraceIdentifier
+            });
+        }
+        catch (Auth0Exception ex)
+        {
+            _logger.LogWarning("Auth0 error during token refresh: {Error}", ex.Error.Message);
+
+            return Unauthorized(new ErrorResponse
+            {
+                Code = "AuthenticationError",
+                Message = ex.Message,
+                TraceId = HttpContext.TraceIdentifier
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during token refresh");
+
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new ErrorResponse
+                {
+                    Code = "InternalServerError",
+                    Message = "An unexpected error occurred during token refresh",
+                    TraceId = HttpContext.TraceIdentifier
+                });
+        }
+    }
 }

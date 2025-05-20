@@ -28,7 +28,7 @@ public class GetUserPreferencesByIdQueryHandler : IRequestHandler<GetUserPrefere
         _validator = validator;
     }
 
-    public async Task<UserPreferencesResponse> Handle(GetUserPreferencesByIdQuery request, 
+    public async Task<UserPreferencesResponse> Handle(GetUserPreferencesByIdQuery request,
         CancellationToken cancellationToken)
     {
         // Validate the query
