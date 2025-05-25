@@ -302,8 +302,8 @@ const FollowingFeed = () => {
                 </div>
             ) : (
                 <>
-                    {/* Feed grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4" role="list">
+                    {/* Feed grid - Mobile: 3 cols, Desktop: 5 cols */}
+                    <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4" role="list">
                         {feedItems.map((item) => (
                             <Link
                                 key={item.interaction.aggregateId}
@@ -325,44 +325,57 @@ const FollowingFeed = () => {
                                             <img
                                                 src={item.userProfile.avatarUrl}
                                                 alt={`${item.userProfile.name} ${item.userProfile.surname}`}
-                                                className="w-7 h-7 rounded-full mr-2 object-cover"
+                                                className="w-5 h-5 sm:w-7 sm:h-7 rounded-full mr-1 sm:mr-2 object-cover flex-shrink-0"
                                             />
                                         ) : (
                                             <div
-                                                className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold mr-2">
+                                                className="w-5 h-5 sm:w-7 sm:h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold mr-1 sm:mr-2 flex-shrink-0">
                                                 {item.userProfile?.name.charAt(0) || '?'}{item.userProfile?.surname.charAt(0) || ''}
                                             </div>
                                         )}
-                                        <div className="truncate text-sm leading-tight">
+                                        <div className="truncate text-xs sm:text-sm leading-tight">
                                             {item.userProfile ? `${item.userProfile.name} ${item.userProfile.surname}` : 'Unknown User'}
                                         </div>
                                     </div>
-                                    <h3 className="font-medium text-gray-900 truncate">{item.catalogItem?.name || 'Unknown Title'}</h3>
+                                    <h3 className="font-medium text-gray-900 truncate text-[0.650rem] sm:text-sm">{item.catalogItem?.name || 'Unknown Title'}</h3>
                                     {/* Interaction details */}
                                     <div className="flex items-center text-xs mt-1">
                                         {item.interaction.rating && (
                                             <div className="flex items-center">
-                                                <NormalizedStarDisplay
-                                                    currentGrade={item.interaction.rating.normalizedGrade}
-                                                    minGrade={1}
-                                                    maxGrade={10}
-                                                />
+                                                <div className="sm:hidden">
+                                                    <NormalizedStarDisplay
+                                                        currentGrade={item.interaction.rating.normalizedGrade}
+                                                        minGrade={1}
+                                                        maxGrade={10}
+                                                        size="mb"
+                                                    />
+                                                </div>
+                                                <div className="hidden sm:block">
+                                                    <NormalizedStarDisplay
+                                                        currentGrade={item.interaction.rating.normalizedGrade}
+                                                        minGrade={1}
+                                                        maxGrade={10}
+                                                        size="sm"
+                                                    />
+                                                </div>
 
                                                 {item.interaction.rating.isComplex && (
-                                                    <SlidersHorizontal className="h-4 w-4 ml-1 text-primary-500"/>
+                                                    <SlidersHorizontal
+                                                        className="hidden sm:block h-2.5 w-2.5 sm:h-4 sm:w-4 ml-0.5 sm:ml-1 text-primary-500"/>
                                                 )}
                                             </div>
                                         )}
 
                                         {item.interaction.isLiked &&
-                                            <Heart className="h-4 w-4 ml-1 text-red-500 fill-red-500"/>}
+                                            <Heart
+                                                className="h-2.5 w-2.5 sm:h-4 sm:w-4 ml-0.5 sm:ml-1 text-red-500 fill-red-500"/>}
                                         {item.interaction.review &&
-                                            <MessageSquare className="h-4 w-4 ml-1 text-primary-600"/>}
+                                            <MessageSquare className="h-2.5 w-2.5 sm:h-4 sm:w-4 ml-0.5 sm:ml-1 text-primary-600"/>}
                                     </div>
 
-                                    <div className="flex items-center mt-1 text-xs text-gray-500">
-                                        <Calendar className="h-3 w-3 mr-1"/>
-                                        <span>{formatDate(item.interaction.createdAt)}</span>
+                                    <div className="flex items-center mt-1 text-[0.600rem] sm:text-xs text-gray-500">
+                                        <Calendar className="hidden sm:block h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1 flex-shrink-0"/>
+                                        <span className="truncate">{formatDate(item.interaction.createdAt)}</span>
                                     </div>
                                 </div>
                             </Link>

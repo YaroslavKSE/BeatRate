@@ -74,22 +74,30 @@ const Home = () => {
       <div className="max-w-6xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
         {/* Hero Section with Search */}
         <div className="text-center mb-8 sm:mb-12 px-2 sm:px-4">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">Welcome to BeatRate</h1>
-          <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8">Discover, rate, and share your music experiences</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-3">Welcome to BeatRate</h1>
+          <p className="text-l sm:text-xl text-gray-600 mb-6 sm:mb-8">Discover, rate, and share your music experiences</p>
 
           {/* Search Bar */}
           <div className="max-w-2xl mx-auto">
             <form onSubmit={handleSearchSubmit} className="relative">
               <div className="flex items-center relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 sm:h-5 w-4 sm:w-5 text-gray-400" />
+                  <Search className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400"/>
                 </div>
                 <input
                     type="text"
                     placeholder="Search for artists, albums, or tracks..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full py-3 px-5 pl-10 rounded-full text-base focus:outline-none border border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 shadow-sm"
+                    className="hidden sm:block w-full py-3 px-5 pl-10 rounded-full text-base focus:outline-none border border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 shadow-sm"
+                    aria-label="Search for music"
+                />
+                <input
+                    type="text"
+                    placeholder="Search for music..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="sm:hidden w-full py-3 px-5 pl-10 rounded-full text-base focus:outline-none border border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 shadow-sm"
                     aria-label="Search for music"
                 />
                 <button
@@ -97,7 +105,7 @@ const Home = () => {
                     className="absolute right-2 bg-primary-600 text-white p-2 rounded-full hover:bg-primary-700 transition-colors"
                     aria-label="Submit search"
                 >
-                  <Search className="h-4 w-4" />
+                  <Search className="h-4 w-4"/>
                 </button>
               </div>
             </form>
@@ -111,7 +119,7 @@ const Home = () => {
         >
           {[{
             title: 'Rate Your Way',
-            icon: <Star className="h-4 sm:h-5 w-4 sm:w-5 mr-2 text-primary-500" />,
+            icon: <Star className="h-4 sm:h-5 w-4 sm:w-5 mr-2 text-primary-500"/>,
             description: 'Create custom grading methods to evaluate music your way.',
             link: '/grading-methods/create',
             linkText: 'Create a grading method'
@@ -154,7 +162,7 @@ const Home = () => {
         {/* New Releases section */}
         <div className="bg-white shadow rounded-lg overflow-hidden mb-8">
           <div className="px-3 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-primary-600 to-primary-500 flex justify-between items-center">
-            <h2 className="text-lg sm:text-xl font-bold text-white flex items-center">
+            <h2 className="text-l sm:text-xl font-bold text-white flex items-center">
               <Disc className="mr-2 h-4 sm:h-5 w-4 sm:w-5" />
               New Releases
             </h2>
@@ -183,31 +191,37 @@ const Home = () => {
                 </button>
               </div>
           ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4 p-4 sm:p-6" role="list">
-                {newReleases.map((album) => (
-                    <Link
-                        key={album.spotifyId}
-                        to={`/album/${album.spotifyId}`}
-                        className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
-                        role="listitem"
-                    >
-                      <div className="aspect-square w-full overflow-hidden">
-                        <img
-                            src={album.imageUrl || '/placeholder-album.jpg'}
-                            alt={`Album cover of ${album.name} by ${album.artistName}`}
-                            className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-2 sm:p-3">
-                        <h3 className="font-medium text-gray-900 truncate text-sm sm:text-base leading-tight">{album.name}</h3>
-                        <p className="text-xs sm:text-sm text-gray-600 truncate leading-tight">{album.artistName}</p>
-                        <div className="flex items-center mt-1 text-xs text-gray-500">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          <span>{formatDate(album.releaseDate || '')}</span>
+              <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 p-4 sm:p-6" role="list">
+                {newReleases.map((album, index) => {
+                  // Show 9 items on mobile, 10 on desktop
+                  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+                  const maxItems = isMobile ? 9 : 10;
+                  if (index >= maxItems) return null;
+
+                  return (
+                      <Link
+                          key={album.spotifyId}
+                          to={`/album/${album.spotifyId}`}
+                          className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+                          role="listitem"
+                      >
+                        <div className="aspect-square w-full overflow-hidden">
+                          <img
+                              src={album.imageUrl || '/placeholder-album.jpg'}
+                              alt={`Album cover of ${album.name} by ${album.artistName}`}
+                              className="w-full h-full object-cover"
+                          />
                         </div>
-                      </div>
-                    </Link>
-                ))}
+                        <div className="p-2 sm:p-3">
+                          <h3 className="font-medium text-gray-900 truncate text-xs sm:text-base leading-tight">{album.name}</h3>
+                          <p className="text-xs sm:text-sm text-gray-600 truncate leading-tight">{album.artistName}</p>
+                          <div className="flex items-center mt-1 text-[0.600rem] sm:text-xs text-gray-500">
+                            <Calendar className="hidden sm:block h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1 flex-shrink-0" />
+                            <span className="truncate">{formatDate(album.releaseDate || '')}</span></div>
+                        </div>
+                      </Link>
+                  );
+                })}
               </div>
           )}
         </div>

@@ -4,7 +4,7 @@ interface NormalizedStarDisplayProps {
     currentGrade: number;
     minGrade: number;
     maxGrade: number;
-    size?: 'sm' | 'md' | 'lg';
+    size?: 'mb' |'sm' | 'md' | 'lg';
 }
 
 /**
@@ -38,6 +38,7 @@ const NormalizedStarDisplay: React.FC<NormalizedStarDisplayProps> = ({
 
     // Determine star sizes based on the size prop
     const starSizes = {
+        mb: 'h-2.5 w-2.5',
         sm: 'h-4 w-4',
         md: 'h-6 w-6',
         lg: 'h-8 w-8'
