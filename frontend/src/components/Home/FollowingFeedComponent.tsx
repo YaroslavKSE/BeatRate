@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { RefreshCcw, ArrowRight, Heart, SlidersHorizontal, Calendar, MessageSquare, UserRoundPlus } from 'lucide-react';
+import { RefreshCcw, ArrowRight, Heart, Scale, Calendar, MessageSquare, UserRoundPlus } from 'lucide-react';
 import InteractionService, { InteractionDetailDTO } from '../../api/interaction';
 import CatalogService from '../../api/catalog';
 import UsersService from '../../api/users';
@@ -195,7 +195,7 @@ const FollowingFeedComponent = () => {
                                                 </div>
 
                                                 {item.interaction.rating.isComplex && (
-                                                    <SlidersHorizontal
+                                                    <Scale
                                                         className="hidden sm:block h-4 w-4 ml-1 text-primary-500"/>
                                                 )}
                                             </div>
