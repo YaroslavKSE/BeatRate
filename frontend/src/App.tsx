@@ -39,22 +39,48 @@ const AuthCallback = () => {
     useEffect(() => {
         const processAuth = async () => {
             try {
-                const { accessToken, provider } = await handleAuthCallback();
-                // Use the store's socialLogin function with the tokens
-                await socialLogin(accessToken, provider);
+                console.log('=== AUTH CALLBACK PROCESSING ===');
+
+                // Get the authorization code from the callback
+                const { code, state } = await handleAuthCallback();
+
+                console.log('Authorization code received:', code ? 'yes' : 'no');
+                console.log('State:', state);
+
+                // Prepare the social login request with authorization code
+                const socialLoginParams = {
+                    code: code,
+                    redirectUri: `${window.location.origin}/callback`,
+                    provider: 'google' // You might want to determine this dynamically based on state
+                };
+
+                console.log('Calling socialLogin with:', {
+                    hasCode: !!socialLoginParams.code,
+                    redirectUri: socialLoginParams.redirectUri,
+                    provider: socialLoginParams.provider
+                });
+
+                // Use the store's socialLogin function with the authorization code
+                await socialLogin(socialLoginParams.code, socialLoginParams.redirectUri, socialLoginParams.provider);
+
+                console.log('Social login successful, redirecting...');
 
                 // Redirect to home page or the original destination after successful login
                 window.location.href = location.state?.from || '/';
             } catch (error) {
                 console.error('Auth callback error:', error);
-                window.location.href = '/login';
+                // Add more specific error handling
+                if (error instanceof Error) {
+                    console.error('Error message:', error.message);
+                }
+                window.location.href = '/login?error=auth_callback_failed';
             }
         };
 
         processAuth();
     }, [socialLogin, location.state]);
 
-    // Show a subtle loading indicator while processing the callback
+    // Show a loading indicator while processing the callback
     return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
             <LoadingIndicator size="large" text="Completing sign-in" />

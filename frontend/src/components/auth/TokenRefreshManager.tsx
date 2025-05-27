@@ -1,69 +1,82 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import useAuthStore from '../../store/authStore';
 
 // Time in milliseconds before token expiry when we should refresh (5 minutes)
 const REFRESH_BUFFER_MS = 5 * 60 * 1000;
+// Check interval - every 1 minute
+const CHECK_INTERVAL_MS = 60 * 1000;
 
 /**
- * Component that manages token refreshing in the background
- * This should be included in the App layout
+ * Token Refresh Manager
+ * Uses interval-based checking instead of complex timers
  */
 const TokenRefreshManager: React.FC = () => {
-  const { refreshToken, isAuthenticated } = useAuthStore();
-  const refreshTimerRef = useRef<number | null>(null);
+  const { refreshToken, isAuthenticated, authInitialized } = useAuthStore();
+  const intervalRef = useRef<number | null>(null);
+  const lastRefreshRef = useRef<number>(0);
 
   useEffect(() => {
-    // Clean up any existing timer
-    if (refreshTimerRef.current) {
-      window.clearTimeout(refreshTimerRef.current);
-      refreshTimerRef.current = null;
+    // Only start checking if authenticated and auth is initialized
+    if (!isAuthenticated || !authInitialized) {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
     }
 
-    // Only set up refresh timer if authenticated
-    if (isAuthenticated) {
-      const setupRefreshTimer = () => {
-        // Get token expiration time
+    const checkAndRefresh = async () => {
+      try {
         const expiresAtStr = localStorage.getItem('expiresAt');
-        if (!expiresAtStr) return;
+        if (!expiresAtStr) {
+          console.log('[TOKEN-MANAGER] No expiration time found');
+          return;
+        }
 
         const expiresAt = parseInt(expiresAtStr, 10);
         const now = Date.now();
+        const timeUntilExpiry = expiresAt - now;
+        const shouldRefresh = timeUntilExpiry <= REFRESH_BUFFER_MS;
 
-        // Calculate time until refresh (subtracting buffer)
-        const timeUntilRefresh = Math.max(0, expiresAt - now - REFRESH_BUFFER_MS);
+        // Prevent multiple refreshes within 30 seconds
+        const timeSinceLastRefresh = now - lastRefreshRef.current;
 
-        console.log(`Token expires in ${(expiresAt - now) / 1000} seconds, scheduling refresh in ${timeUntilRefresh / 1000} seconds`);
+        // console.log('[TOKEN-MANAGER] Check:', {
+        //   timeUntilExpiry: Math.floor(timeUntilExpiry / 1000),
+        //   shouldRefresh,
+        //   timeSinceLastRefresh: Math.floor(timeSinceLastRefresh / 1000)
+        // });
 
-        // Set timer to refresh before token expires
-        refreshTimerRef.current = window.setTimeout(async () => {
-          console.log('Refreshing token in background...');
-          try {
-            const success = await refreshToken();
+        if (shouldRefresh && timeSinceLastRefresh > 30000) {
+          lastRefreshRef.current = now;
 
-            if (success) {
-              // If refresh successful, set up the next refresh
-              setupRefreshTimer();
-            }
-          } catch (error) {
-            console.error('Background token refresh failed:', error);
+          const success = await refreshToken();
+          if (success) {
+            console.log('[TOKEN-MANAGER] Token refresh successful');
+          } else {
+            console.error('[TOKEN-MANAGER] Token refresh failed');
           }
-        }, timeUntilRefresh);
-      };
-
-      // Initial setup of the refresh timer
-      setupRefreshTimer();
-    }
-
-    // Clean up timer on unmount or when auth state changes
-    return () => {
-      if (refreshTimerRef.current) {
-        window.clearTimeout(refreshTimerRef.current);
-        refreshTimerRef.current = null;
+        }
+      } catch (error) {
+        console.error('[TOKEN-MANAGER] Error during token check:', error);
       }
     };
-  }, [isAuthenticated, refreshToken]);
 
-  // This component doesn't render anything
+    // Initial check
+    checkAndRefresh();
+
+    // Set up interval checking
+    intervalRef.current = window.setInterval(checkAndRefresh, CHECK_INTERVAL_MS);
+
+    // Cleanup on unmount or auth state change
+    return () => {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isAuthenticated, authInitialized, refreshToken]);
+
   return null;
 };
 
