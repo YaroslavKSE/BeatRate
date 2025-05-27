@@ -25,16 +25,18 @@ const TrackResults: React.FC<TrackResultsProps> = ({
                                                    }) => {
     if (isLoading && tracks.length === 0) {
         return (
-            <div className="animate-pulse space-y-4 bg-white rounded-lg shadow overflow-hidden">
-                {[...Array(compact ? 5 : 10)].map((_, i) => (
-                    <div key={i} className="flex items-center px-6 py-4">
-                        <div className="w-12 h-12 bg-gray-200 mr-4"></div>
-                        <div className="flex-1">
-                            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+            <div className="animate-pulse bg-white rounded-lg shadow overflow-hidden">
+                <div className="space-y-1 sm:space-y-4">
+                    {[...Array(compact ? 5 : 10)].map((_, i) => (
+                        <div key={i} className="flex items-center px-3 py-2 sm:px-6 sm:py-4">
+                            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-200 mr-2 sm:mr-4 rounded"></div>
+                            <div className="flex-1">
+                                <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 mb-1 sm:mb-2"></div>
+                                <div className="h-2 sm:h-3 bg-gray-200 rounded w-1/2"></div>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
             </div>
         );
     }
@@ -46,7 +48,7 @@ const TrackResults: React.FC<TrackResultsProps> = ({
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Tracks</h2>
+                <h2 className="text-lg sm:text-xl font-bold">Tracks</h2>
                 {compact && onShowMore && totalCount > tracks.length && (
                     <button
                         type="button"
@@ -60,7 +62,7 @@ const TrackResults: React.FC<TrackResultsProps> = ({
 
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 {tracks.map((track, index) => (
-                    <TrackRow key={track.spotifyId} track={track} index={index} />
+                    <TrackRow key={track.spotifyId} track={track} index={index} compact={compact} />
                 ))}
             </div>
 

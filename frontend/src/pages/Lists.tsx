@@ -271,7 +271,7 @@ const Lists = () => {
                     <p className="text-xs sm:text-base text-gray-600">
                         {getTotalLists() > 0
                             ? `You have ${getTotalLists()} ${getTotalLists() === 1 ? 'list' : 'lists'}`
-                            : 'Create your first list to organize your music'}
+                            : 'You have no lists'}
                     </p>
                 </div>
 

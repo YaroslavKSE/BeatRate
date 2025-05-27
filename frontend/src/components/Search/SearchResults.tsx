@@ -78,7 +78,7 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     }
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-6 sm:space-y-10">
             {/* All Results Tab */}
             {activeTab === 'all' && (
                 <>
