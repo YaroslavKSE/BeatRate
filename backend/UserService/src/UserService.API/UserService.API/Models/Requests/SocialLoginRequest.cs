@@ -2,6 +2,7 @@
 
 public class SocialLoginRequest
 {
-    public string AccessToken { get; set; }
+    public string Code { get; set; }
     public string Provider { get; set; }
+    public string RedirectUri { get; set; }
 }

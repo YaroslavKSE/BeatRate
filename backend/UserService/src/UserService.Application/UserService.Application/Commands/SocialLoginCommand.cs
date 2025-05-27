@@ -5,12 +5,14 @@ namespace UserService.Application.Commands;
 
 public class SocialLoginCommand : IRequest<LoginResponseDto>
 {
-    public string AccessToken { get; }
+    public string Code { get; }
     public string Provider { get; }
+    public string RedirectUri { get; }
 
-    public SocialLoginCommand(string accessToken, string provider)
+    public SocialLoginCommand(string code, string provider, string redirectUri)
     {
-        AccessToken = accessToken;
+        Code = code;
         Provider = provider;
+        RedirectUri = redirectUri;
     }
 }

@@ -34,8 +34,14 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid) throw new ValidationException(validationResult.Errors);
 
-        // Verify token with Auth0 and get user info
-        var userInfo = await _auth0Service.GetUserInfoAsync(request.AccessToken);
+        // Exchange authorization code for tokens
+        var authTokenResponse = await _auth0Service.ExchangeCodeForTokensAsync(request.Code, request.RedirectUri);
+        
+        _logger.LogInformation("Successfully exchanged authorization code for tokens, refresh token present: {HasRefreshToken}", 
+            !string.IsNullOrEmpty(authTokenResponse.RefreshToken));
+
+        // Get user info from the access token
+        var userInfo = await _auth0Service.GetUserInfoAsync(authTokenResponse.AccessToken);
 
         // Check if the user already exists in our database
         var existingUser = await _userRepository.GetByAuth0IdAsync(userInfo.UserId);
@@ -43,14 +49,13 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
         if (existingUser == null)
         {
             // Extract name and surname from user info
-            var nameParts = userInfo.Name?.Split(' ') ?? Array.Empty<string>();
-            var name = nameParts.Length > 0 ? nameParts[0] : "User";
-            var surname = nameParts.Length > 1 ? string.Join(" ", nameParts.Skip(1)) : "";
+            var name = string.IsNullOrEmpty(userInfo.Name) ? "User" : userInfo.Name;
+            var surname = string.IsNullOrEmpty(userInfo.Surname) ? "" : userInfo.Surname;
 
-            // Use the nickname provided by Auth0
+            // Use the username from userInfo (already processed for uniqueness in Auth0Service)
             var username = userInfo.Username;
 
-            // Ensure username is unique
+            // Ensure username is unique in our database
             var attempt = 1;
             var candidateUsername = username;
             while (await _userRepository.GetByUsernameAsync(candidateUsername) != null)
@@ -63,11 +68,13 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
                 username,
                 name,
                 surname,
-                userInfo.UserId);
+                userInfo.UserId,
+                userInfo.Picture); // Set avatar URL from social provider
 
             await _userRepository.AddAsync(newUser);
             await _userRepository.SaveChangesAsync();
 
+            // Assign default role to the user in Auth0
             await _auth0Service.AssignDefaultRoleAsync(userInfo.UserId);
 
             _logger.LogInformation(
@@ -76,12 +83,17 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
         }
         else
         {
+            // Update avatar if it's provided and different
+            if (!string.IsNullOrEmpty(userInfo.Picture) && userInfo.Picture != existingUser.AvatarUrl)
+            {
+                existingUser.UpdateAvatar(userInfo.Picture);
+                await _userRepository.SaveChangesAsync();
+                _logger.LogInformation("Updated avatar for existing user: {Email}", userInfo.Email);
+            }
+
             _logger.LogInformation("Existing user logged in via social login: {Provider}, Email: {Email}",
                 request.Provider, userInfo.Email);
         }
-
-        // Get Auth0 tokens
-        var authTokenResponse = await _auth0Service.GetTokensForSocialUserAsync(request.AccessToken);
 
         return new LoginResponseDto
         {

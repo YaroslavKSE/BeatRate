@@ -18,4 +18,6 @@ public class Auth0Settings
 
     // Combined scopes for token requests
     public string FullScopes => $"{BaseScopes} {ApiPermissions}";
+    
+    public List<string> AllowedRedirectUris { get; set; } = new();
 }
