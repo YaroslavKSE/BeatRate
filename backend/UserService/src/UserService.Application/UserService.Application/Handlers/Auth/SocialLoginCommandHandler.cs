@@ -36,8 +36,9 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
 
         // Exchange authorization code for tokens
         var authTokenResponse = await _auth0Service.ExchangeCodeForTokensAsync(request.Code, request.RedirectUri);
-        
-        _logger.LogInformation("Successfully exchanged authorization code for tokens, refresh token present: {HasRefreshToken}", 
+
+        _logger.LogInformation(
+            "Successfully exchanged authorization code for tokens, refresh token present: {HasRefreshToken}",
             !string.IsNullOrEmpty(authTokenResponse.RefreshToken));
 
         // Get user info from the access token

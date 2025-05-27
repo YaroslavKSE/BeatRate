@@ -367,71 +367,70 @@ public class Auth0Service : IAuth0Service
             throw new Auth0Exception("Token refresh failed", ex);
         }
     }
+
     public async Task<AuthTokenResponse> ExchangeCodeForTokensAsync(string code, string redirectUri)
-{
-    try
     {
-        var tokenRequest = new Auth0CodeExchangeRequest
+        try
         {
-            ClientId = _settings.ClientId,
-            ClientSecret = _settings.ClientSecret,
-            Code = code,
-            RedirectUri = redirectUri, 
-            Scope = _settings.FullScopes
-        };
+            var tokenRequest = new Auth0CodeExchangeRequest
+            {
+                ClientId = _settings.ClientId,
+                ClientSecret = _settings.ClientSecret,
+                Code = code,
+                RedirectUri = redirectUri,
+                Scope = _settings.FullScopes
+            };
 
-        _logger.LogInformation("Token exchange request: ClientId={ClientId}, RedirectUri={RedirectUri}, CodeLength={CodeLength}",
-            _settings.ClientId, redirectUri, code.Length);
+            _logger.LogInformation(
+                "Token exchange request: ClientId={ClientId}, RedirectUri={RedirectUri}, CodeLength={CodeLength}",
+                _settings.ClientId, redirectUri, code.Length);
 
-        var response = await _httpClient.PostAsJsonAsync(
-            $"https://{_settings.Domain}/oauth/token",
-            tokenRequest);
+            var response = await _httpClient.PostAsJsonAsync(
+                $"https://{_settings.Domain}/oauth/token",
+                tokenRequest);
 
-        if (!response.IsSuccessStatusCode)
-        {
-            var error = await response.Content.ReadAsStringAsync();
-            _logger.LogError("Code exchange failed. Status: {Status}, Error: {Error}",
-                response.StatusCode, error);
-            throw new Auth0Exception(error);
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Code exchange failed. Status: {Status}, Error: {Error}",
+                    response.StatusCode, error);
+                throw new Auth0Exception(error);
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Auth0 token response content: {ResponseContent}", responseContent);
+
+            var auth0Response = await response.Content.ReadFromJsonAsync<Auth0TokenResponse>();
+
+            _logger.LogInformation(
+                "Auth0 token response parsed: AccessToken={HasAccessToken}, RefreshToken={HasRefreshToken}, ExpiresIn={ExpiresIn}, TokenType={TokenType}",
+                !string.IsNullOrEmpty(auth0Response.AccessToken),
+                !string.IsNullOrEmpty(auth0Response.RefreshToken),
+                auth0Response.ExpiresIn,
+                auth0Response.TokenType);
+
+            // Log the actual refresh token value (first 10 chars for security)
+            if (!string.IsNullOrEmpty(auth0Response.RefreshToken))
+                _logger.LogInformation("Refresh token received (first 10 chars): {RefreshTokenPrefix}...",
+                    auth0Response.RefreshToken.Substring(0, Math.Min(10, auth0Response.RefreshToken.Length)));
+            else
+                _logger.LogWarning("No refresh token in Auth0 response!");
+
+            _logger.LogInformation("Successfully exchanged authorization code for tokens");
+
+            // Map to application layer DTO
+            return new AuthTokenResponse
+            {
+                AccessToken = auth0Response.AccessToken,
+                RefreshToken = auth0Response.RefreshToken,
+                ExpiresIn = auth0Response.ExpiresIn,
+                TokenType = auth0Response.TokenType
+            };
         }
-
-        var responseContent = await response.Content.ReadAsStringAsync();
-        _logger.LogInformation("Auth0 token response content: {ResponseContent}", responseContent);
-
-        var auth0Response = await response.Content.ReadFromJsonAsync<Auth0TokenResponse>();
-
-        _logger.LogInformation("Auth0 token response parsed: AccessToken={HasAccessToken}, RefreshToken={HasRefreshToken}, ExpiresIn={ExpiresIn}, TokenType={TokenType}",
-            !string.IsNullOrEmpty(auth0Response.AccessToken),
-            !string.IsNullOrEmpty(auth0Response.RefreshToken),
-            auth0Response.ExpiresIn,
-            auth0Response.TokenType);
-
-        // Log the actual refresh token value (first 10 chars for security)
-        if (!string.IsNullOrEmpty(auth0Response.RefreshToken))
+        catch (Exception ex) when (ex is not Auth0Exception)
         {
-            _logger.LogInformation("Refresh token received (first 10 chars): {RefreshTokenPrefix}...",
-                auth0Response.RefreshToken.Substring(0, Math.Min(10, auth0Response.RefreshToken.Length)));
+            _logger.LogError(ex, "Error exchanging authorization code for tokens");
+            throw new Auth0Exception("Failed to exchange authorization code for tokens", ex);
         }
-        else
-        {
-            _logger.LogWarning("No refresh token in Auth0 response!");
-        }
-
-        _logger.LogInformation("Successfully exchanged authorization code for tokens");
-
-        // Map to application layer DTO
-        return new AuthTokenResponse
-        {
-            AccessToken = auth0Response.AccessToken,
-            RefreshToken = auth0Response.RefreshToken,
-            ExpiresIn = auth0Response.ExpiresIn,
-            TokenType = auth0Response.TokenType
-        };
     }
-    catch (Exception ex) when (ex is not Auth0Exception)
-    {
-        _logger.LogError(ex, "Error exchanging authorization code for tokens");
-        throw new Auth0Exception("Failed to exchange authorization code for tokens", ex);
-    }
-}
 }
