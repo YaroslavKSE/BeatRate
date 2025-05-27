@@ -22,9 +22,11 @@ export interface RefreshTokenParams {
   refreshToken: string;
 }
 
+// Updated interface for Authorization Code flow
 export interface SocialLoginParams {
-  accessToken: string;
+  code: string;
   provider: string;
+  redirectUri: string;
 }
 
 export interface UpdateProfileParams {
@@ -59,7 +61,6 @@ export interface UserProfile {
   followerCount: number;
   followingCount: number;
 }
-
 
 export interface PresignedUrlResponse {
   url: string;
@@ -101,7 +102,6 @@ const AuthService = {
     return response.data;
   },
 
-  // New method to refresh the token
   refreshToken: async (): Promise<LoginResponse> => {
     const refreshToken = localStorage.getItem('refreshToken');
 
@@ -117,11 +117,11 @@ const AuthService = {
     return response.data;
   },
 
-  // Handle social login with Auth0 (including Google)
   socialLogin: async (params: SocialLoginParams): Promise<LoginResponse> => {
     const response = await authApi.post('/social-login', params);
     // Store the token, refresh token, and expiration
     storeTokenInfo(response.data);
+
     return response.data;
   },
 
@@ -224,6 +224,5 @@ const AuthService = {
     return response.data;
   }
 };
-
 
 export default AuthService;
