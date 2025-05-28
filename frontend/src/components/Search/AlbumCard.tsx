@@ -19,9 +19,9 @@ const AlbumCard = ({ album, mobile = false, compact = false }: AlbumCardProps) =
                         className="w-full h-full object-cover"
                     />
                 </div>
-                <div className={`${mobile && compact ? 'p-2' : 'p-3'}`}>
+                <div className={`${mobile && compact ? 'p-1' : 'p-3'}`}>
                     <h3 className={`font-medium text-gray-900 truncate ${
-                        mobile && compact ? 'text-xs' : 'text-sm sm:text-base'
+                        mobile && compact ? 'text-[0.800rem]' : 'text-base'
                     }`}>
                         {album.name}
                     </h3>
@@ -31,7 +31,7 @@ const AlbumCard = ({ album, mobile = false, compact = false }: AlbumCardProps) =
                         {album.artistName}
                     </p>
                     <div className={`flex items-center mt-1 text-gray-500 ${
-                        mobile && compact ? 'text-xs' : 'text-xs'
+                        mobile && compact ? 'text-[0.650rem]' : 'text-xs'
                     }`}>
                         <span>{album.releaseDate?.split('-')[0] || 'Unknown year'}</span>
                         <span className="mx-1">•</span>

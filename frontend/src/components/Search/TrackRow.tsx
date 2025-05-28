@@ -21,7 +21,7 @@ const TrackRow = ({ track, index, compact = false }: TrackRowProps) => {
                     src={track.imageUrl || '/placeholder-album.jpg'}
                     alt={track.name}
                     className={`object-cover shadow ${
-                        compact ? 'w-8 h-8 sm:w-12 sm:h-12' : 'w-12 h-12 sm:w-16 sm:h-16'
+                        compact ? 'w-12 h-12 sm:w-16 sm:h-16' : 'w-12 h-12 sm:w-16 sm:h-16'
                     }`}
                 />
             </div>
@@ -36,21 +36,15 @@ const TrackRow = ({ track, index, compact = false }: TrackRowProps) => {
                         >
                             <h4 className={`font-medium truncate flex items-center ${
                                 isHovered ? 'text-primary-600' : 'text-gray-900'
-                            } transition-colors duration-200 ${
-                                compact ? 'text-sm sm:text-base' : 'text-sm sm:text-base'
-                            }`}>
+                            } transition-colors duration-200 text-[0.800rem] sm:text-base`}>
                                 {track.name}
                                 {track.isExplicit && (
-                                    <span className={`ml-1 sm:ml-2 px-1 sm:px-1.5 py-0.5 text-gray-700 bg-gray-200 rounded ${
-                                        compact ? 'text-xs' : 'text-xs'
-                                    }`}>
+                                    <span className={`ml-1 sm:ml-2 px-1 sm:px-1.5 py-0.5 text-gray-700 bg-gray-200 rounded text-xs`}>
                                         E
                                     </span>
                                 )}
                             </h4>
-                            <p className={`text-gray-500 truncate mt-0.5 sm:mt-1 ${
-                                compact ? 'text-xs sm:text-sm' : 'text-xs sm:text-sm'
-                            }`}>
+                            <p className={`text-gray-500 truncate mt-0.5 sm:mt-1 text-[0.700rem] sm:text-sm`}>
                                 {track.artistName}
                             </p>
                         </a>
