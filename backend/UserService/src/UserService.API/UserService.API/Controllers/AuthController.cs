@@ -247,15 +247,19 @@ public class AuthController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Processing social login for provider: {Provider}", request.Provider);
+            _logger.LogInformation("Processing social login for provider: {Provider} with code length: {CodeLength}",
+                request.Provider, request.Code?.Length ?? 0);
 
             var command = new SocialLoginCommand(
-                request.AccessToken,
-                request.Provider);
+                request.Code,
+                request.Provider,
+                request.RedirectUri);
 
             var result = await _mediator.Send(command);
 
-            _logger.LogInformation("User successfully logged in via social login: {Provider}", request.Provider);
+            _logger.LogInformation(
+                "User successfully logged in via social login: {Provider}, RefreshToken present: {HasRefreshToken}",
+                request.Provider, !string.IsNullOrEmpty(result.RefreshToken));
 
             var response = new LoginResponse
             {

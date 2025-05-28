@@ -13,7 +13,7 @@ interface AuthState {
 
   // Actions
   login: (email: string, password: string) => Promise<void>;
-  socialLogin: (accessToken: string, provider: string) => Promise<void>;
+  socialLogin: (code: string, redirectUri: string, provider: string) => Promise<void>;
   register: (email: string, password: string, name: string, surname: string, username: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>; // New action to refresh the token
@@ -150,12 +150,15 @@ const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  socialLogin: async (accessToken: string, provider: string) => {
+  socialLogin: async (code: string, redirectUri: string, provider: string) => {
     try {
       set({ isLoading: true, error: null });
-      await AuthService.socialLogin({ accessToken, provider });
+
+      await AuthService.socialLogin({ code, redirectUri, provider });
       await get().fetchUserProfile();
+
       set({ isAuthenticated: true, isLoading: false });
+
     } catch (error) {
       console.error('Social login error:', error);
 
@@ -166,6 +169,13 @@ const useAuthStore = create<AuthState>((set, get) => ({
         if (responseData && typeof responseData === 'object' && 'message' in responseData) {
           errorMessage = String(responseData.message);
         }
+
+        // Log more details for debugging
+        console.error('Social login axios error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: error.response?.headers
+        });
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }

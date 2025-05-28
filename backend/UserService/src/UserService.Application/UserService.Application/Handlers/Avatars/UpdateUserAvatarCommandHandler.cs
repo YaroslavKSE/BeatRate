@@ -13,20 +13,17 @@ public class UpdateUserAvatarCommandHandler : IRequestHandler<UpdateUserAvatarCo
 {
     private readonly IUserRepository _userRepository;
     private readonly IS3StorageService _s3Service;
-    private readonly IAuth0Service _auth0Service;
     private readonly ILogger<UpdateUserAvatarCommandHandler> _logger;
     private readonly IValidator<UpdateUserAvatarCommand> _validator;
 
     public UpdateUserAvatarCommandHandler(
         IUserRepository userRepository,
         IS3StorageService s3Service,
-        IAuth0Service auth0Service,
         ILogger<UpdateUserAvatarCommandHandler> logger,
         IValidator<UpdateUserAvatarCommand> validator)
     {
         _userRepository = userRepository;
         _s3Service = s3Service;
-        _auth0Service = auth0Service;
         _logger = logger;
         _validator = validator;
     }
@@ -43,21 +40,24 @@ public class UpdateUserAvatarCommandHandler : IRequestHandler<UpdateUserAvatarCo
         if (user == null)
             throw new NotFoundException($"User with Auth0 ID '{command.Auth0UserId}' not found");
 
-        // If user already has an avatar, delete it first
-        if (!string.IsNullOrEmpty(user.AvatarUrl)) await _s3Service.DeleteUserAvatarAsync(user.Id);
+        // If user already has a custom avatar, delete it from S3 first
+        if (!string.IsNullOrEmpty(user.AvatarUrl) && IsCustomS3Avatar(user.AvatarUrl))
+        {
+            await _s3Service.DeleteUserAvatarAsync(user.Id);
+            _logger.LogInformation("Deleted previous custom avatar from S3 for user {UserId}", user.Id);
+        }
 
-        // Upload the new avatar
+        // Upload the new avatar to S3
         var avatarUrl = await _s3Service.UploadUserAvatarAsync(command.File, user.Id);
+        _logger.LogInformation("Uploaded new avatar to S3 for user {UserId}: {AvatarUrl}", user.Id, avatarUrl);
 
-        // Update the user entity
+        // Update our database with the new avatar URL
+        // Our database is the source of truth for avatars
         user.UpdateAvatar(avatarUrl);
         await _userRepository.SaveChangesAsync();
 
-        // Update the user's avatar in Auth0
-        await _auth0Service.UpdateUserPictureAsync(command.Auth0UserId, avatarUrl);
-
-        _logger.LogInformation("Updated avatar for user {UserId} with Auth0 ID {Auth0UserId}", user.Id,
-            command.Auth0UserId);
+        _logger.LogInformation("Updated avatar for user {UserId} with Auth0 ID {Auth0UserId}: {AvatarUrl}",
+            user.Id, command.Auth0UserId, avatarUrl);
 
         // Return updated user
         return new UserResponse
@@ -71,5 +71,14 @@ public class UpdateUserAvatarCommandHandler : IRequestHandler<UpdateUserAvatarCo
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt
         };
+    }
+
+    /// <summary>
+    /// Checks if avatar is from our S3 bucket (to decide if we should delete it)
+    /// </summary>
+    private bool IsCustomS3Avatar(string avatarUrl)
+    {
+        return !string.IsNullOrEmpty(avatarUrl) &&
+               avatarUrl.Contains("beatrate-avatar-s3.s3.amazonaws.com", StringComparison.OrdinalIgnoreCase);
     }
 }
