@@ -49,7 +49,7 @@ const ItemStatsComponent = ({ itemId }: ItemStatsProps) => {
         <div className="pt-3">
             <div className="flex flex-col items-start">
                 <div className="flex flex-col">
-                    <div className="flex items-end space-x-3 w-fit">
+                    <div className="flex items-end space-x-3 max-w-full overflow-x-hidden">
                         {/* Average Rating */}
                         <div className="flex flex-col items-center">
                             <div className="text-2xl text-gray-900">{averageRating}</div>
