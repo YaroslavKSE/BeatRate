@@ -397,24 +397,8 @@ public class Auth0Service : IAuth0Service
                 throw new Auth0Exception(error);
             }
 
-            var responseContent = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation("Auth0 token response content: {ResponseContent}", responseContent);
-
+            await response.Content.ReadAsStringAsync();
             var auth0Response = await response.Content.ReadFromJsonAsync<Auth0TokenResponse>();
-
-            _logger.LogInformation(
-                "Auth0 token response parsed: AccessToken={HasAccessToken}, RefreshToken={HasRefreshToken}, ExpiresIn={ExpiresIn}, TokenType={TokenType}",
-                !string.IsNullOrEmpty(auth0Response.AccessToken),
-                !string.IsNullOrEmpty(auth0Response.RefreshToken),
-                auth0Response.ExpiresIn,
-                auth0Response.TokenType);
-
-            // Log the actual refresh token value (first 10 chars for security)
-            if (!string.IsNullOrEmpty(auth0Response.RefreshToken))
-                _logger.LogInformation("Refresh token received (first 10 chars): {RefreshTokenPrefix}...",
-                    auth0Response.RefreshToken.Substring(0, Math.Min(10, auth0Response.RefreshToken.Length)));
-            else
-                _logger.LogWarning("No refresh token in Auth0 response!");
 
             _logger.LogInformation("Successfully exchanged authorization code for tokens");
 
