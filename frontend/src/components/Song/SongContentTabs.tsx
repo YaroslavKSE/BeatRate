@@ -27,23 +27,23 @@ const SongContentTabs = ({
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
             <div className="border-b border-gray-200">
-                <nav className="flex -mb-px">
+                <nav className="flex -mb-px whitespace-nowrap">
                     <TabButton
                         active={activeTab === 'reviews'}
                         onClick={() => setActiveTab('reviews')}
-                        icon={<MessageSquare className="h-4 w-4 mr-2" />}
+                        icon={<MessageSquare className="h-4 w-4 mr-1 sm:mr-2" />}
                         label="Reviews"
                     />
                     <TabButton
                         active={activeTab === 'lists'}
                         onClick={() => setActiveTab('lists')}
-                        icon={<ListMusic className="h-4 w-4 mr-2" />}
+                        icon={<ListMusic className="h-4 w-4 mr-1 sm:mr-2" />}
                         label="In Lists"
                     />
                     <TabButton
                         active={activeTab === 'my-history'}
                         onClick={() => setActiveTab('my-history')}
-                        icon={<History className="h-4 w-4 mr-2" />}
+                        icon={<History className="h-4 w-4 mr-1 sm:mr-2" />}
                         label="History"
                     />
                 </nav>
@@ -51,7 +51,7 @@ const SongContentTabs = ({
 
             {/* Reviews Tab Content */}
             {activeTab === 'reviews' && (
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     {id ? (
                         <ItemReviewsComponent
                             itemId={id}
@@ -77,7 +77,7 @@ const SongContentTabs = ({
 
             {/* History Tab Content */}
             {activeTab === 'my-history' && (
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                     {isAuthenticated && id ? (
                         <ItemHistoryComponent
                             itemId={id}
@@ -91,7 +91,7 @@ const SongContentTabs = ({
                             message={isAuthenticated
                                 ? "You haven't interacted with this track yet."
                                 : "You need to be logged in to see your history with this track."}
-                            icon={<History className="h-12 w-12 text-gray-400" />}
+                            icon={<History className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400" />}
                             action={{
                                 label: isAuthenticated ? "Log interaction" : "Log In",
                                 onClick: isAuthenticated
@@ -118,7 +118,7 @@ const TabButton = ({ active, onClick, icon, label }: TabButtonProps) => {
     return (
         <button
             onClick={onClick}
-            className={`mr-8 py-4 px-6 border-b-2 font-medium text-sm flex items-center ${
+            className={`py-3 px-3 sm:px-6 border-b-2 font-medium text-xs sm:text-sm flex items-center ${
                 active
                     ? 'border-primary-600 text-primary-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
