@@ -86,7 +86,7 @@ const SongHeader = ({
                     </div>
 
                     {/* Date • Album • Duration */}
-                    <div className="flex items-center justify-center text-[0.750rem] text-gray-600 space-x-2">
+                    <div className="flex items-center justify-center text-[0.750rem] space-x-2 text-gray-600">
                         {track.album?.releaseDate && (
                             <>
                                 <span>{formatDate(track.album.releaseDate)}</span>
@@ -97,7 +97,7 @@ const SongHeader = ({
                             <>
                                 <Link
                                     to={`/album/${track.album.spotifyId || track.albumId}`}
-                                    className="hover:text-primary-600 hover:underline truncate max-w-[150px]"
+                                    className="font-bold hover:text-primary-600 hover:underline truncate max-w-[150px]"
                                 >
                                     {track.album.name}
                                 </Link>
