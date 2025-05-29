@@ -74,16 +74,16 @@ const AlbumTrackList = ({
             {tracks.map((track, index) => (
                 <div
                     key={track.spotifyId}
-                    className={`flex items-center py-3 px-3 sm:px-6 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                    className={`flex items-center py-2.5 sm:py-3 px-3 sm:px-6 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
                     onMouseEnter={() => setHoveredTrack(track.spotifyId)}
                     onMouseLeave={() => setHoveredTrack(null)}
                 >
                     <div
-                        className="w-8 text-center relative flex-shrink-0"
+                        className="w-5 sm:w-8 text-center relative flex-shrink-0"
                     >
                         {/* Playing animation when track is playing but not hovered */}
                         {playingTrack === track.spotifyId && hoveredTrack !== track.spotifyId ? (
-                            <AudioVisualizer />
+                            <AudioVisualizer/>
                         ) : hoveredTrack === track.spotifyId ? (
                             <button
                                 onClick={() => handlePreviewToggle(track)}
@@ -91,13 +91,13 @@ const AlbumTrackList = ({
                                 title={playingTrack === track.spotifyId ? "Stop preview" : "Play preview"}
                             >
                                 {playingTrack === track.spotifyId ? (
-                                    <Pause className="h-5 w-5 fill-current" />
+                                    <Pause className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
                                 ) : (
-                                    <Play className="h-5 w-5 fill-current" />
+                                    <Play className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
                                 )}
                             </button>
                         ) : (
-                            <span className="text-gray-500 font-medium">
+                            <span className="text-sm sm:text-base text-gray-500 font-medium">
                                 {track.trackNumber || index + 1}
                             </span>
                         )}
@@ -113,7 +113,7 @@ const AlbumTrackList = ({
                             </Link>
 
                             {track.isExplicit && (
-                                <span className="ml-1 px-1 py-0.5 text-xs bg-gray-200 text-gray-700 rounded">
+                                <span className="ml-2 px-1 py-0.5 text-[0.600rem] sm:text-xs bg-gray-200 text-gray-700 rounded">
                                     E
                                 </span>
                             )}
@@ -135,7 +135,7 @@ const AlbumTrackList = ({
                             className="text-gray-400 hover:text-primary-600 focus:outline-none"
                             aria-label="Rate track"
                         >
-                            <Star className="h-5 w-5" />
+                            <Star className="h-4 w-4 sm:h-5 sm:w-5" />
                         </button>
                     </div>
                 </div>

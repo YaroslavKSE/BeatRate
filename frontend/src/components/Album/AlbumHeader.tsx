@@ -40,34 +40,10 @@ const AlbumHeader = ({
                 </div>
 
                 {/* Album Info - Centered */}
-                <div className="text-center mb-2 px-4">
+                <div className="text-center mb-2 px-1">
                     {/* Album Name */}
                     <div>
-                        {isTitleLong && !isExpanded ? (
-                            <div className="relative">
-                                <h1 className="text-2xl font-bold text-gray-900 line-clamp-1">{album.name}</h1>
-                                <button
-                                    onClick={() => setIsExpanded(true)}
-                                    className="mt-1 text-primary-600 hover:text-primary-800 text-sm"
-                                    aria-label="Show more"
-                                >
-                                    Show more
-                                </button>
-                            </div>
-                        ) : (
-                            <div>
-                                <h1 className="text-2xl font-bold text-gray-900">{album.name}</h1>
-                                {isTitleLong && isExpanded && (
-                                    <button
-                                        onClick={() => setIsExpanded(false)}
-                                        className="mt-1 text-primary-600 hover:text-primary-800 text-sm"
-                                        aria-label="Show less"
-                                    >
-                                        Show less
-                                    </button>
-                                )}
-                            </div>
-                        )}
+                        <h1 className="text-2xl font-bold text-gray-900 line-clamp-3">{album.name}</h1>
                     </div>
 
                     {/* Artist */}
