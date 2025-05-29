@@ -8,7 +8,6 @@ import NormalizedStarDisplay from '../CreateInteraction/NormalizedStarDisplay';
 import EmptyState from '../common/EmptyState';
 
 interface ItemReviewsProps {
-    // Props added for write review button
     itemId: string;
     itemType: 'Album' | 'Track';
     onWriteReview?: () => void;
@@ -37,26 +36,18 @@ const ItemReviewsComponent = ({ itemId, itemType, onWriteReview }: ItemReviewsPr
         const uniqueUserIds = [...new Set(userIds)];
 
         try {
-            // Use the new batch API to fetch all profiles in a single request
             const profiles = await UsersService.getUserProfilesBatch(uniqueUserIds);
-
-            // Create a new map with the fetched profiles
             const newProfiles = new Map<string, PublicUserProfile>();
 
-            // Add all fetched profiles to the map
             profiles.forEach(profile => {
                 newProfiles.set(profile.id, profile);
             });
 
-            // Merge with existing profiles
             setUserProfiles(prevProfiles => {
                 const mergedProfiles = new Map(prevProfiles);
-
-                // Add new profiles to the merged map
                 newProfiles.forEach((profile, id) => {
                     mergedProfiles.set(id, profile);
                 });
-
                 return mergedProfiles;
             });
         } catch (error) {
@@ -84,7 +75,6 @@ const ItemReviewsComponent = ({ itemId, itemType, onWriteReview }: ItemReviewsPr
                 setOffset(reviewItems.length);
                 setHasMore(reviewItems.length < totalCount);
 
-                // Fetch user profiles for all reviews at once
                 if (reviewItems.length > 0) {
                     await fetchUserProfiles(reviewItems.map(review => review.userId));
                 }
@@ -120,9 +110,7 @@ const ItemReviewsComponent = ({ itemId, itemType, onWriteReview }: ItemReviewsPr
             setOffset(prev => prev + moreReviews.length);
             setHasMore(offset + moreReviews.length < totalCount);
 
-            // Fetch user profiles for new reviews all at once
             await fetchUserProfiles(moreReviews.map(review => review.userId));
-
         } catch (err) {
             console.error('Error loading more reviews:', err);
         } finally {
@@ -134,12 +122,10 @@ const ItemReviewsComponent = ({ itemId, itemType, onWriteReview }: ItemReviewsPr
     useEffect(() => {
         if (loading || !hasMore) return;
 
-        // Disconnect previous observer if it exists
         if (observerRef.current) {
             observerRef.current.disconnect();
         }
 
-        // Create new intersection observer
         observerRef.current = new IntersectionObserver(entries => {
             const [entry] = entries;
             if (entry.isIntersecting && !loadingMore) {
@@ -147,12 +133,10 @@ const ItemReviewsComponent = ({ itemId, itemType, onWriteReview }: ItemReviewsPr
             }
         }, { threshold: 0.5 });
 
-        // Observe the load more trigger element
         if (loadMoreTriggerRef.current) {
             observerRef.current.observe(loadMoreTriggerRef.current);
         }
 
-        // Clean up observer on unmount
         return () => {
             if (observerRef.current) {
                 observerRef.current.disconnect();
@@ -214,85 +198,170 @@ const ItemReviewsComponent = ({ itemId, itemType, onWriteReview }: ItemReviewsPr
                             className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200"
                             onClick={() => handleReviewClick(review.aggregateId)}
                         >
-                            <div className="p-4 cursor-pointer">
-                                {/* User and rating info */}
-                                <div className="flex items-start mb-3">
-                                    {/* User avatar */}
-                                    <div className="flex-shrink-0 mr-3">
-                                        {userProfile?.avatarUrl ? (
-                                            <img
-                                                src={userProfile.avatarUrl}
-                                                alt={userProfile.name}
-                                                className="h-10 w-10 rounded-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-lg font-bold">
-                                                {userProfile ?
-                                                    `${userProfile.name.charAt(0)}${userProfile.surname.charAt(0)}` :
-                                                    '?'}
+                            {/* Mobile Layout */}
+                            <div className="sm:hidden">
+                                <div className="p-3 cursor-pointer">
+                                    {/* Top row: User info + Rating + Date */}
+                                    <div className="flex items-start justify-between mb-2">
+                                        <div className="flex items-center flex-1 min-w-0">
+                                            {/* User avatar */}
+                                            <div className="flex-shrink-0 mr-2">
+                                                {userProfile?.avatarUrl ? (
+                                                    <img
+                                                        src={userProfile.avatarUrl}
+                                                        alt={userProfile.name}
+                                                        className="h-9 w-9 rounded-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="h-9 w-9 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold">
+                                                        {userProfile ?
+                                                            `${userProfile.name.charAt(0)}${userProfile.surname.charAt(0)}` :
+                                                            '?'}
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
+
+                                            {/* Username and rating */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center space-x-2 mb-1">
+                                                    <span className="font-medium text-gray-900 text-sm truncate">
+                                                        {userProfile ? `${userProfile.name} ${userProfile.surname}` : 'Unknown User'}
+                                                    </span>
+                                                </div>
+
+                                                {/* Rating display */}
+                                                {review.rating && (
+                                                    <div className="flex items-center space-x-1">
+                                                        <NormalizedStarDisplay
+                                                            currentGrade={review.rating.normalizedGrade}
+                                                            minGrade={1}
+                                                            maxGrade={10}
+                                                            size="sm"
+                                                        />
+                                                        {review.rating.isComplex && (
+                                                            <SlidersHorizontal className="h-3 w-3 text-primary-600" />
+                                                        )}
+                                                        {review.isLiked && (
+                                                            <Heart className="h-3 w-3 text-red-500 fill-red-500 ml-2" />
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Date */}
+                                        <span className="text-xs text-gray-500 flex-shrink-0">
+                                            {formatDate(review.createdAt)}
+                                        </span>
                                     </div>
 
-                                    {/* Username, rating and date */}
-                                    <div className="flex-grow">
-                                        <div className="flex flex-wrap items-center gap-x-2 mb-1">
-                                            <span className="font-medium text-gray-900">
-                                                {userProfile ? `${userProfile.name} ${userProfile.surname}` : 'Unknown User'}
-                                            </span>
+                                    {/* Review text */}
+                                    {review.review && (
+                                        <div className="mt-2 text-gray-800 text-sm">
+                                            {review.review.reviewText.length > 300
+                                                ? `${review.review.reviewText.substring(0, 300)}...`
+                                                : review.review.reviewText}
+                                        </div>
+                                    )}
 
-                                            {/* Rating display */}
-                                            {review.rating && (
-                                                <div className="flex items-center">
-                                                    <NormalizedStarDisplay
-                                                        currentGrade={review.rating.normalizedGrade}
-                                                        minGrade={1}
-                                                        maxGrade={10}
-                                                        size="sm"
-                                                    />
+                                    {/* Likes and comments count */}
+                                    {review.review && (
+                                        <div className="mt-3 flex items-center text-xs text-gray-600 space-x-4">
+                                            <div className="flex items-center">
+                                                <ThumbsUp className="h-3 w-3 mr-1" />
+                                                <span>{review.review.likes}</span>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <MessageSquare className="h-3 w-3 mr-1" />
+                                                <span>{review.review.comments}</span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-                                                    {review.rating.isComplex && (
-                                                        <span className="ml-1 text-primary-600">
-                                                            <SlidersHorizontal className="h-3.5 w-3.5" />
-                                                        </span>
-                                                    )}
+                            {/* Desktop Layout (original) */}
+                            <div className="hidden sm:block">
+                                <div className="p-4 cursor-pointer">
+                                    {/* User and rating info */}
+                                    <div className="flex items-start mb-3">
+                                        {/* User avatar */}
+                                        <div className="flex-shrink-0 mr-3">
+                                            {userProfile?.avatarUrl ? (
+                                                <img
+                                                    src={userProfile.avatarUrl}
+                                                    alt={userProfile.name}
+                                                    className="h-10 w-10 rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-lg font-bold">
+                                                    {userProfile ?
+                                                        `${userProfile.name.charAt(0)}${userProfile.surname.charAt(0)}` :
+                                                        '?'}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Username, rating and date */}
+                                        <div className="flex-grow">
+                                            <div className="flex flex-wrap items-center gap-x-2 mb-1">
+                                                <span className="font-medium text-gray-900">
+                                                    {userProfile ? `${userProfile.name} ${userProfile.surname}` : 'Unknown User'}
+                                                </span>
+
+                                                {/* Rating display */}
+                                                {review.rating && (
+                                                    <div className="flex items-center">
+                                                        <NormalizedStarDisplay
+                                                            currentGrade={review.rating.normalizedGrade}
+                                                            minGrade={1}
+                                                            maxGrade={10}
+                                                            size="sm"
+                                                        />
+
+                                                        {review.rating.isComplex && (
+                                                            <span className="ml-1 text-primary-600">
+                                                                <SlidersHorizontal className="h-3.5 w-3.5" />
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Like indicator */}
+                                                {review.isLiked && (
+                                                    <Heart className="h-4 w-4 text-red-500 fill-red-500" />
+                                                )}
+
+                                                {/* Date */}
+                                                <span className="text-xs text-gray-500">
+                                                    {formatDate(review.createdAt)}
+                                                </span>
+                                            </div>
+
+                                            {/* Review text */}
+                                            {review.review && (
+                                                <div className="mt-2 text-gray-800 whitespace-pre-line">
+                                                    {review.review.reviewText.length > 500
+                                                        ? `${review.review.reviewText.substring(0, 500)}...`
+                                                        : review.review.reviewText}
                                                 </div>
                                             )}
 
-                                            {/* Like indicator */}
-                                            {review.isLiked && (
-                                                <Heart className="h-4 w-4 text-red-500 fill-red-500" />
-                                            )}
-
-                                            {/* Date */}
-                                            <span className="text-xs text-gray-500">
-                                                {formatDate(review.createdAt)}
-                                            </span>
-                                        </div>
-
-                                        {/* Review text - truncated to 500 characters */}
-                                        {review.review && (
-                                            <div className="mt-2 text-gray-800 whitespace-pre-line">
-                                                {review.review.reviewText.length > 500
-                                                    ? `${review.review.reviewText.substring(0, 500)}...`
-                                                    : review.review.reviewText}
+                                            {/* Likes and comments count */}
+                                            <div className="mt-3 flex items-center text-xs text-gray-600 space-x-4">
+                                                {review.review && (
+                                                    <>
+                                                        <div className="flex items-center">
+                                                            <ThumbsUp className="h-3.5 w-3.5 mr-1" />
+                                                            <span>{review.review.likes} {review.review.likes === 1 ? 'like' : 'likes'}</span>
+                                                        </div>
+                                                        <div className="flex items-center">
+                                                            <MessageSquare className="h-3.5 w-3.5 mr-1" />
+                                                            <span>{review.review.comments} {review.review.comments === 1 ? 'comment' : 'comments'}</span>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
-                                        )}
-
-                                        {/* Likes and comments count */}
-                                        <div className="mt-3 flex items-center text-xs text-gray-600 space-x-4">
-                                            {review.review && (
-                                                <>
-                                                    <div className="flex items-center">
-                                                        <ThumbsUp className="h-3.5 w-3.5 mr-1" />
-                                                        <span>{review.review.likes} {review.review.likes === 1 ? 'like' : 'likes'}</span>
-                                                    </div>
-                                                    <div className="flex items-center">
-                                                        <MessageSquare className="h-3.5 w-3.5 mr-1" />
-                                                        <span>{review.review.comments} {review.review.comments === 1 ? 'comment' : 'comments'}</span>
-                                                    </div>
-                                                </>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -302,7 +371,7 @@ const ItemReviewsComponent = ({ itemId, itemType, onWriteReview }: ItemReviewsPr
                 })}
             </div>
 
-            {/* Load more trigger - this invisible element triggers loading when it becomes visible */}
+            {/* Load more trigger */}
             <div
                 ref={loadMoreTriggerRef}
                 className={`h-10 ${!hasMore ? 'hidden' : ''}`}

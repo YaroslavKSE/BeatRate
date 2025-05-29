@@ -49,7 +49,7 @@ const ItemStatsComponent = ({ itemId }: ItemStatsProps) => {
         <div className="pt-3">
             <div className="flex flex-col items-start">
                 <div className="flex flex-col">
-                    <div className="flex items-end space-x-3 max-w-full overflow-x-hidden">
+                    <div className="flex items-end space-x-3 max-w-full">
                         {/* Average Rating */}
                         <div className="flex flex-col items-center">
                             <div className="text-2xl text-gray-900">{averageRating}</div>
@@ -110,7 +110,7 @@ const ItemStatsComponent = ({ itemId }: ItemStatsProps) => {
                                                         {Array(5 - fullStars - (hasHalf ? 1 : 0))
                                                             .fill(0)
                                                             .map((_, i) => (
-                                                                <div key={i} className="relative translate-y-[-0.5px]">
+                                                                <div key={i} className="hidden sm:block relative translate-y-[-0.5px]">
                                                                     <Star className="h-3 w-3 text-gray-300" fill="none" />
                                                                 </div>
                                                             ))}
