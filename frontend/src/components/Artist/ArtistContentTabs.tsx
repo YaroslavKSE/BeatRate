@@ -169,39 +169,39 @@ const ArtistContentTabs = ({
 
             {/* Overview Tab Content */}
             {activeTab === 'overview' && (
-                <div className="p-6">
-                    <div className="flex flex-col space-y-8">
+                <div className="p-3 sm:p-6">
+                    <div className="flex flex-col space-y-6 sm:space-y-8">
                         {/* Top Tracks Section */}
                         <div>
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                                    <Music className="h-5 w-5 mr-2 text-primary-600" />
+                                <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center">
+                                    <Music className="h-4 sm:h-5 w-4 sm:w-5 mr-2 text-primary-600" />
                                     Popular Tracks
                                 </h3>
                                 <button
                                     onClick={() => setActiveTab('top-tracks')}
-                                    className="text-primary-600 hover:text-primary-800 flex items-center text-sm font-medium"
+                                    className="text-primary-600 hover:text-primary-800 flex items-center text-xs sm:text-sm font-medium"
                                 >
-                                    Show more <ChevronRight className="h-4 w-4 ml-1" />
+                                    Show more <ChevronRight className="h-3 sm:h-4 w-3 sm:w-4 ml-1" />
                                 </button>
                             </div>
 
                             {isLoadingTracks ? (
-                                <div className="animate-pulse space-y-4">
+                                <div className="animate-pulse space-y-2 sm:space-y-4">
                                     {[...Array(5)].map((_, i) => (
                                         <div key={i} className="flex items-center p-2">
-                                            <div className="w-6 h-6 bg-gray-200 rounded-full mr-3"></div>
+                                            <div className="w-4 sm:w-6 h-4 sm:h-6 bg-gray-200 rounded-full mr-2 sm:mr-3"></div>
                                             <div className="flex-grow">
-                                                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                                                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                                <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 mb-1 sm:mb-2"></div>
+                                                <div className="h-2 sm:h-3 bg-gray-200 rounded w-1/2"></div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : tracksError ? (
-                                <div className="text-red-500 text-sm p-4">{tracksError}</div>
+                                <div className="text-red-500 text-xs sm:text-sm p-4">{tracksError}</div>
                             ) : topTracks.length === 0 ? (
-                                <div className="text-gray-500 text-sm p-4">No tracks found</div>
+                                <div className="text-gray-500 text-xs sm:text-sm p-4">No tracks found</div>
                             ) : (
                                 <div className="space-y-1">
                                     {topTracks.slice(0, 5).map((track, index) => (
@@ -211,6 +211,7 @@ const ArtistContentTabs = ({
                                             index={index}
                                             isPlaying={playingTrack === track.spotifyId}
                                             onPlayClick={() => handlePreviewPlay(track)}
+                                            compact={true}
                                         />
                                     ))}
                                 </div>
@@ -220,37 +221,69 @@ const ArtistContentTabs = ({
                         {/* Albums Section */}
                         <div>
                             <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                                    <Disc className="h-5 w-5 mr-2 text-primary-600" />
+                                <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center">
+                                    <Disc className="h-4 sm:h-5 w-4 sm:w-5 mr-2 text-primary-600" />
                                     Albums
                                 </h3>
                                 <button
                                     onClick={() => setActiveTab('albums')}
-                                    className="text-primary-600 hover:text-primary-800 flex items-center text-sm font-medium"
+                                    className="text-primary-600 hover:text-primary-800 flex items-center text-xs sm:text-sm font-medium"
                                 >
-                                    Show more <ChevronRight className="h-4 w-4 ml-1" />
+                                    Show more <ChevronRight className="h-3 sm:h-4 w-3 sm:w-4 ml-1" />
                                 </button>
                             </div>
 
                             {isLoadingAlbums ? (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                                    {[...Array(5)].map((_, i) => (
-                                        <div key={i} className="animate-pulse">
-                                            <div className="bg-gray-200 aspect-square rounded-md mb-2"></div>
-                                            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                <div>
+                                    {/* Mobile skeleton */}
+                                    <div className="sm:hidden">
+                                        <div className="flex space-x-3 overflow-x-hidden px-1">
+                                            {[...Array(3)].map((_, i) => (
+                                                <div key={i} className="flex-none w-32">
+                                                    <div className="bg-gray-200 aspect-square w-full rounded-md"></div>
+                                                    <div className="p-2">
+                                                        <div className="h-3 bg-gray-200 rounded w-3/4 mb-1"></div>
+                                                        <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    {/* Desktop skeleton */}
+                                    <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-5 gap-4">
+                                        {[...Array(5)].map((_, i) => (
+                                            <div key={i} className="animate-pulse">
+                                                <div className="bg-gray-200 aspect-square rounded-md mb-2"></div>
+                                                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             ) : albumsError ? (
-                                <div className="text-red-500 text-sm p-4">{albumsError}</div>
+                                <div className="text-red-500 text-xs sm:text-sm p-4">{albumsError}</div>
                             ) : albums.length === 0 ? (
-                                <div className="text-gray-500 text-sm p-4">No albums found</div>
+                                <div className="text-gray-500 text-xs sm:text-sm p-4">No albums found</div>
                             ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                                    {albums.slice(0, 5).map(album => (
-                                        <AlbumCard key={album.spotifyId} album={album} />
-                                    ))}
+                                <div>
+                                    {/* Mobile Layout - Horizontal scrolling for overview */}
+                                    <div className="sm:hidden">
+                                        <div className="flex space-x-3 overflow-x-auto pb-2 px-1">
+                                            {albums.slice(0, 5).map(album => (
+                                                <div key={album.spotifyId} className="flex-none w-32">
+                                                    <AlbumCard album={album} />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Desktop Layout - Grid */}
+                                    <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-5 gap-4">
+                                        {albums.slice(0, 5).map(album => (
+                                            <AlbumCard key={album.spotifyId} album={album} />
+                                        ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -260,17 +293,17 @@ const ArtistContentTabs = ({
 
             {/* Albums Tab Content */}
             {activeTab === 'albums' && (
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                            <Disc className="h-5 w-5 mr-2 text-primary-600" />
+                <div className="p-3 sm:p-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center mb-3 sm:mb-0">
+                            <Disc className="h-4 sm:h-5 w-4 sm:w-5 mr-2 text-primary-600" />
                             {albumType === 'album' ? 'Albums' : 'Singles & EPs'}
                         </h3>
 
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2 w-full sm:w-auto">
                             <button
                                 onClick={() => handleAlbumTypeChange('album')}
-                                className={`px-4 py-2 rounded-md font-medium text-sm ${
+                                className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 rounded-md font-medium text-xs sm:text-sm ${
                                     albumType === 'album'
                                         ? 'bg-primary-600 text-white'
                                         : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
@@ -280,7 +313,7 @@ const ArtistContentTabs = ({
                             </button>
                             <button
                                 onClick={() => handleAlbumTypeChange('single')}
-                                className={`px-4 py-2 rounded-md font-medium text-sm ${
+                                className={`flex-1 sm:flex-none px-3 sm:px-4 py-1.5 sm:py-2 rounded-md font-medium text-xs sm:text-sm ${
                                     albumType === 'single'
                                         ? 'bg-primary-600 text-white'
                                         : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
@@ -292,17 +325,33 @@ const ArtistContentTabs = ({
                     </div>
 
                     {isLoadingAlbums && albums.length === 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                            {[...Array(8)].map((_, i) => (
-                                <div key={i} className="animate-pulse">
-                                    <div className="bg-gray-200 aspect-square rounded-md mb-2"></div>
-                                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div>
+                            {/* Mobile skeleton */}
+                            <div className="sm:hidden">
+                                <div className="grid grid-cols-2 gap-3">
+                                    {[...Array(6)].map((_, i) => (
+                                        <div key={i} className="animate-pulse">
+                                            <div className="bg-gray-200 aspect-square rounded-md mb-2"></div>
+                                            <div className="h-3 bg-gray-200 rounded w-3/4 mb-1"></div>
+                                            <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            </div>
+
+                            {/* Desktop skeleton */}
+                            <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                {[...Array(8)].map((_, i) => (
+                                    <div key={i} className="animate-pulse">
+                                        <div className="bg-gray-200 aspect-square rounded-md mb-2"></div>
+                                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     ) : albumsError ? (
-                        <div className="text-red-500 text-sm p-4">{albumsError}</div>
+                        <div className="text-red-500 text-xs sm:text-sm p-4">{albumsError}</div>
                     ) : albums.length === 0 ? (
                         <EmptyState
                             title={`No ${albumType === 'album' ? 'albums' : 'singles'} found`}
@@ -311,19 +360,31 @@ const ArtistContentTabs = ({
                         />
                     ) : (
                         <>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {albums.map(album => (
-                                    <AlbumCard key={album.spotifyId} album={album} />
-                                ))}
+                            <div>
+                                {/* Mobile Layout - 2 per row */}
+                                <div className="sm:hidden">
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {albums.map(album => (
+                                            <AlbumCard key={album.spotifyId} album={album} />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Desktop Layout - Original grid */}
+                                <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                    {albums.map(album => (
+                                        <AlbumCard key={album.spotifyId} album={album} />
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Load more button */}
                             {albums.length < albumsTotal && (
-                                <div className="mt-8 text-center">
+                                <div className="mt-6 sm:mt-8 text-center">
                                     <button
                                         onClick={loadMoreAlbums}
                                         disabled={isLoadingAlbums}
-                                        className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                        className="px-3 sm:px-4 py-1.5 sm:py-2 border border-gray-300 rounded-md shadow-sm text-xs sm:text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {isLoadingAlbums ? 'Loading...' : `Load More (${albums.length} of ${albumsTotal})`}
                                     </button>
@@ -336,26 +397,26 @@ const ArtistContentTabs = ({
 
             {/* Top Tracks Tab Content */}
             {activeTab === 'top-tracks' && (
-                <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                        <Music className="h-5 w-5 mr-2 text-primary-600" />
+                <div className="p-3 sm:p-6">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
+                        <Music className="h-4 sm:h-5 w-4 sm:w-5 mr-2 text-primary-600" />
                         Top Tracks
                     </h3>
 
                     {isLoadingTracks && topTracks.length === 0 ? (
-                        <div className="space-y-4">
+                        <div className="space-y-2 sm:space-y-4">
                             {[...Array(10)].map((_, i) => (
                                 <div key={i} className="animate-pulse flex items-center p-2">
-                                    <div className="w-6 h-6 bg-gray-200 rounded-full mr-3"></div>
+                                    <div className="w-4 sm:w-6 h-4 sm:h-6 bg-gray-200 rounded-full mr-2 sm:mr-3"></div>
                                     <div className="flex-grow">
-                                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                                        <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 mb-1 sm:mb-2"></div>
+                                        <div className="h-2 sm:h-3 bg-gray-200 rounded w-1/2"></div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : tracksError ? (
-                        <div className="text-red-500 text-sm p-4">{tracksError}</div>
+                        <div className="text-red-500 text-xs sm:text-sm p-4">{tracksError}</div>
                     ) : topTracks.length === 0 ? (
                         <EmptyState
                             title="No top tracks found"
@@ -371,6 +432,7 @@ const ArtistContentTabs = ({
                                     index={index}
                                     isPlaying={playingTrack === track.spotifyId}
                                     onPlayClick={() => handlePreviewPlay(track)}
+                                    compact={true}
                                 />
                             ))}
                         </div>
