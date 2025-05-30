@@ -1,5 +1,5 @@
 import {TrackSummary} from "../../api/catalog.ts";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {Disc2, Pause, Play} from "lucide-react";
 import {Link} from "react-router-dom";
 import {formatDuration} from "../../utils/formatters.ts";
@@ -14,6 +14,36 @@ interface TrackRowProps {
 
 const TrackRow = ({ track, index, isPlaying, onPlayClick, compact = false }: TrackRowProps) => {
     const [isHovered, setIsHovered] = useState(false);
+    const [isMobile, setIsMobile] = useState(false);
+
+    // Detect if device is mobile/touch device
+    useEffect(() => {
+        const checkIsMobile = () => {
+            setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window);
+        };
+
+        checkIsMobile();
+        window.addEventListener('resize', checkIsMobile);
+
+        return () => window.removeEventListener('resize', checkIsMobile);
+    }, []);
+
+    // Handle mouse events only on non-mobile devices
+    const handleMouseEnter = () => {
+        if (!isMobile) {
+            setIsHovered(true);
+        }
+    };
+
+    const handleMouseLeave = () => {
+        if (!isMobile) {
+            setIsHovered(false);
+        }
+    };
+
+    // For mobile, show play button when playing OR when tapped/touched
+    // For desktop, show on hover or when playing
+    const shouldShowPlayButton = isMobile ? isPlaying : (isHovered || isPlaying);
 
     return (
         <div
@@ -22,23 +52,32 @@ const TrackRow = ({ track, index, isPlaying, onPlayClick, compact = false }: Tra
             } ${
                 index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
             } hover:bg-gray-100`}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
         >
             {/* Track number or play button */}
             <div className={`${compact ? 'w-6 sm:w-8' : 'w-8'} flex-shrink-0 flex items-center justify-center ${compact ? 'mr-2' : 'mr-2'}`}>
-                {isHovered || isPlaying ? (
+                {shouldShowPlayButton ? (
                     <button
                         onClick={onPlayClick}
                         className="w-6 sm:w-8 h-6 sm:h-8 flex items-center justify-center text-primary-600"
                     >
                         {isPlaying ? (
-                            <Pause className={`${compact ? 'h-3.5 w-3.5 sm:h-5 sm:w-5' : 'h-5 w-5'}`} />
+                            <Pause className={`${compact ? 'h-3.5 w-3.5 sm:h-5 sm:w-5' : 'h-5 w-5'} fill-current sm:fill-none`} />
                         ) : (
                             <Play className={`${compact ? 'h-3.5 w-3.5 sm:h-5 sm:w-5' : 'h-5 w-5'} fill-current`} />
                         )}
                     </button>
+                ) : isMobile ? (
+                    // On mobile, show gray play button
+                    <button
+                        onClick={onPlayClick}
+                        className="w-6 sm:w-8 h-6 sm:h-8 flex items-center justify-center text-gray-400 hover:text-gray-600"
+                    >
+                        <Play className={`${compact ? 'h-3.5 w-3.5 sm:h-5 sm:w-5' : 'h-5 w-5'} fill-current`} />
+                    </button>
                 ) : (
+                    // On desktop, show track number
                     <span className={`text-gray-500 font-medium ${compact ? 'text-[0.800rem] sm:text-base' : 'text-base'}`}>
                         {index + 1}
                     </span>
