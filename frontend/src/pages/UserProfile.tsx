@@ -194,7 +194,7 @@ const UserProfile = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto py-8 px-4">
+        <div className="max-w-6xl mx-auto">
             {/* Profile Header */}
             <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
                 <ProfileHeader
