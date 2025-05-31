@@ -196,7 +196,7 @@ const UserProfile = () => {
     return (
         <div className="max-w-6xl mx-auto">
             {/* Profile Header */}
-            <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
+            <div className="bg-white shadow rounded-lg overflow-hidden mb-2 sm:mb-6">
                 <ProfileHeader
                     profile={userProfile}
                     isOwnProfile={isOwnProfile}
