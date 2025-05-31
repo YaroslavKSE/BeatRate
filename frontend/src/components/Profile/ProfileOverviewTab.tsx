@@ -264,7 +264,7 @@ const ProfileOverviewTab = ({ userId }: ProfileOverviewTabProps) => {
 
     return (
         <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="p-4 sm:p-6 space-y-4 sm:space-y-8">
+            <div className="p-2 sm:p-6 space-y-4 sm:space-y-8">
                 {/* Recent Activity Section */}
                 <div>
                     <h2 className="text-base sm:text-xl font-medium text-gray-900 flex items-center mb-2 sm:mb-4">

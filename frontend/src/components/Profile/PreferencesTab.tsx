@@ -548,7 +548,7 @@ const PreferencesTab = ({ userId, username, isOwnProfile = false }: PreferencesT
 
   return (
       <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="p-4 sm:p-6">
+        <div className="p-2 sm:p-6">
           {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded-md mb-4 sm:mb-6 flex items-center">
                 <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />

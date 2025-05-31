@@ -301,7 +301,7 @@ const ProfileListsTab = ({ userId, username, isOwnProfile = false }: ProfileList
 
     return (
         <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="p-6">
+            <div className="p-2 sm:p-6">
                 {/* Header section */}
                 <div className="flex justify-between items-center mb-2">
                     <h2 className="text-lg font-bold text-gray-900">{isOwnProfile ? 'Your Lists' : `${displayName} Lists`}</h2>
@@ -309,9 +309,9 @@ const ProfileListsTab = ({ userId, username, isOwnProfile = false }: ProfileList
                     {isOwnProfile && (
                         <button
                             onClick={handleCreateList}
-                            className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+                            className="flex items-center px-3 py-2 bg-primary-600 text-xs sm:text-base text-white rounded-md hover:bg-primary-700 transition-colors"
                         >
-                            <Plus className="h-5 w-5 mr-2" />
+                            <Plus className="h-3 w-3 mr-1 sm:h-4 sm:w-4 sm:mr-2"/>
                             Create List
                         </button>
                     )}
@@ -348,7 +348,7 @@ const ProfileListsTab = ({ userId, username, isOwnProfile = false }: ProfileList
                     <div className="flex space-x-2 mb-6">
                         <button
                             onClick={() => handleListTypeChange('Album')}
-                            className={`px-4 py-2 rounded-md font-medium text-sm flex items-center ${
+                            className={`px-4 py-2 rounded-md font-medium text-xs sm:text-sm flex items-center ${
                                 activeListType === 'Album'
                                     ? 'bg-primary-600 text-white'
                                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
@@ -359,7 +359,7 @@ const ProfileListsTab = ({ userId, username, isOwnProfile = false }: ProfileList
                         </button>
                         <button
                             onClick={() => handleListTypeChange('Track')}
-                            className={`px-4 py-2 rounded-md font-medium text-sm flex items-center ${
+                            className={`px-4 py-2 rounded-md font-medium text-xs sm:text-sm flex items-center ${
                                 activeListType === 'Track'
                                     ? 'bg-primary-600 text-white'
                                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
