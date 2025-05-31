@@ -303,7 +303,7 @@ const PublicProfileHistoryTab = ({ userId, username }: PublicProfileHistoryTabPr
   return (
       <div className="bg-white shadow rounded-lg overflow-hidden">
 
-        <div className="p-6">
+        <div className="sm:p-6">
           {error && <DiaryErrorState error={error} onRetry={loadInitialDiaryEntries} />}
 
           {(groupedEntries.length === 0 && !loading && !error) || noInteractions ? (
