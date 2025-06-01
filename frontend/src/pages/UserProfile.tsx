@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
 import UsersService, { PublicUserProfile, UserSubscriptionResponse } from '../api/users';
-import InteractionService, { GradingMethodSummary } from '../api/interaction';
 import useAuthStore from '../store/authStore';
 import ProfileLoadingState from '../components/Profile/ProfileLoadingState';
 import ProfileHeader from '../components/Profile/ProfileHeader';
 import ProfileTabs, { ProfileTabType } from '../components/Profile/ProfileTabs';
 import SocialTabContent from '../components/Profile/SocialTabContent';
-import TabContentWrapper from '../components/Profile/TabContentWrapper';
+import GradingMethodsTab from '../components/Profile/GradingMethodsTab';
+import PreferencesTab from '../components/Profile/PreferencesTab';
 import HistoryTab from '../components/Profile/HistoryTab';
 import ProfileListsTab from '../components/Profile/ProfileListsTab';
 import ProfileOverviewTab from "../components/Profile/ProfileOverviewTab.tsx";
@@ -20,12 +20,11 @@ const UserProfile = () => {
     const { isAuthenticated, user: currentUser } = useAuthStore();
     const [userProfile, setUserProfile] = useState<PublicUserProfile | null>(null);
     const [isFollowing, setIsFollowing] = useState(false);
-    const [gradingMethods, setGradingMethods] = useState<GradingMethodSummary[]>([]);
 
-    // Get active tab from URL params or default to history (changed from grading-methods)
+    // Get active tab from URL params or default to overview
     const tabParam = searchParams.get('tab');
     const [activeTab, setActiveTab] = useState<ProfileTabType>(
-      (tabParam as ProfileTabType) || 'overview'
+        (tabParam as ProfileTabType) || 'overview'
     );
 
     const [loading, setLoading] = useState(true);
@@ -74,22 +73,6 @@ const UserProfile = () => {
                 if (isAuthenticated && !isOwnProfile && id) {
                     const followStatus = await UsersService.checkFollowingStatus(id);
                     setIsFollowing(followStatus);
-                }
-
-                // Fetch public grading methods
-                try {
-                    if (id) {
-                        const methods = await InteractionService.getUserGradingMethods(id);
-                        // Filter to only public methods if not viewing own profile
-                        const filteredMethods = isOwnProfile
-                            ? methods
-                            : methods.filter(method => method.isPublic);
-
-                        setGradingMethods(filteredMethods);
-                    }
-                } catch (err) {
-                    console.error('Error fetching grading methods:', err);
-                    // Non-critical error, don't set the main error state
                 }
 
                 // If user is viewing their own profile from this page, redirect to Profile
@@ -217,55 +200,28 @@ const UserProfile = () => {
 
             {/* Tab Content */}
             <div className="mb-8">
-                {/* Grading Methods Tab */}
-                {activeTab === 'grading-methods' && (
-                    <TabContentWrapper title="Grading Methods">
-                        {gradingMethods.length > 0 ? (
-                            <div className="space-y-4">
-                                {gradingMethods.map((method) => (
-                                    <div
-                                        key={method.id}
-                                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                                    >
-                                        <h3 className="font-medium text-lg">{method.name}</h3>
-                                        <div className="mt-2 flex items-center justify-between">
-                                            <div className="text-sm text-gray-500">
-                                                Created: {new Date(method.createdAt).toLocaleDateString()}
-                                            </div>
-                                            <div className="flex">
-                                                <span
-                                                    className={`px-2 py-0.5 text-xs rounded-full ${
-                                                        method.isPublic 
-                                                        ? 'bg-green-100 text-green-800' 
-                                                        : 'bg-gray-100 text-gray-800'
-                                                    }`}
-                                                >
-                                                    {method.isPublic ? 'Public' : 'Private'}
-                                                </span>
-                                                <button
-                                                    onClick={() => navigate(`/grading-methods/${method.id}`)}
-                                                    className="ml-3 text-sm text-primary-600 hover:text-primary-800"
-                                                >
-                                                    View Details
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center p-8 border border-dashed border-gray-300 rounded-lg">
-                                <p className="text-gray-600">
-                                    {userProfile.username} hasn't shared any public grading methods.
-                                </p>
-                            </div>
-                        )}
-                    </TabContentWrapper>
-                )}
-
+                {/* Overview Tab */}
                 {activeTab === 'overview' && <ProfileOverviewTab userId={id} />}
 
-                {/* Using the unified components */}
+                {/* Grading Methods Tab - Now using the unified component */}
+                {activeTab === 'grading-methods' && (
+                    <GradingMethodsTab
+                        userId={id}
+                        username={userProfile.username}
+                        isOwnProfile={false}
+                    />
+                )}
+
+                {/* Preferences Tab */}
+                {activeTab === 'preferences' && id && (
+                    <PreferencesTab
+                        userId={id}
+                        username={userProfile.username}
+                        isOwnProfile={false}
+                    />
+                )}
+
+                {/* History Tab */}
                 {activeTab === 'history' && id && (
                     <HistoryTab
                         userId={id}
