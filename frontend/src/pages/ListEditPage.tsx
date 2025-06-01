@@ -253,10 +253,10 @@ const ListEditPage = () => {
 
     if (loading) {
         return (
-            <div className="max-w-6xl mx-auto py-8 px-4">
+            <div className="max-w-6xl mx-auto py-4 sm:py-8 px-2 sm:px-4">
                 <div className="flex justify-center items-center h-64">
-                    <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-600"></div>
-                    <span className="ml-3 text-lg text-gray-600">Loading list...</span>
+                    <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 border-t-2 border-b-2 border-primary-600"></div>
+                    <span className="ml-3 text-sm sm:text-lg text-gray-600">Loading list...</span>
                 </div>
             </div>
         );
@@ -264,13 +264,13 @@ const ListEditPage = () => {
 
     if (error || !list) {
         return (
-            <div className="max-w-6xl mx-auto py-8 px-4">
-                <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-lg">
-                    <h2 className="text-xl font-semibold mb-2">Error</h2>
-                    <p>{error || "Couldn't find the list you're looking for."}</p>
+            <div className="max-w-6xl mx-auto py-4 sm:py-8 px-2 sm:px-4">
+                <div className="bg-red-50 border border-red-200 text-red-700 p-4 sm:p-6 rounded-lg">
+                    <h2 className="text-lg sm:text-xl font-semibold mb-2">Error</h2>
+                    <p className="text-sm sm:text-base">{error || "Couldn't find the list you're looking for."}</p>
                     <button
                         onClick={() => navigate('/lists')}
-                        className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+                        className="mt-4 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 text-sm sm:text-base"
                     >
                         Return to Lists
                     </button>
@@ -280,33 +280,35 @@ const ListEditPage = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto py-8 px-4">
+        <div className="max-w-6xl mx-auto py-2 sm:py-8 px-2 sm:px-4">
             {/* Header with back button */}
-            <div className="mb-6 flex justify-between items-center">
+            <div className="mb-4 sm:mb-6 flex justify-between items-center">
                 <button
                     onClick={() => navigate(-1)}
                     className="text-gray-600 hover:text-gray-900 flex items-center"
                 >
-                    <ArrowLeft className="h-5 w-5 mr-1" />
-                    Back to List
+                    <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1" />
+                    <span className="text-sm sm:text-base">Back to List</span>
                 </button>
 
-                <h1 className="text-2xl font-bold text-gray-900">Edit List</h1>
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Edit List</h1>
 
                 <button
                     onClick={handleSaveList}
                     disabled={submitting || !listName.trim()}
-                    className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors disabled:bg-primary-400 disabled:cursor-not-allowed"
+                    className="flex items-center px-3 py-1.5 sm:px-4 sm:py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors disabled:bg-primary-400 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                     {submitting ? (
                         <>
-                            <span className="mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                            Saving...
+                            <span className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                            <span className="hidden sm:inline">Saving...</span>
+                            <span className="sm:hidden">Save</span>
                         </>
                     ) : (
                         <>
-                            <Save className="h-5 w-5 mr-2" />
-                            Save Changes
+                            <Save className="h-3 w-3 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">Save Changes</span>
+                            <span className="sm:hidden">Save</span>
                         </>
                     )}
                 </button>
@@ -314,23 +316,23 @@ const ListEditPage = () => {
 
             {/* Success message */}
             {saveSuccess && (
-                <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50 shadow-md">
+                <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-3 py-2 sm:px-4 sm:py-3 rounded z-50 shadow-md text-sm sm:text-base">
                     List saved successfully! Redirecting...
                 </div>
             )}
 
             {/* Error message */}
             {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 sm:px-4 sm:py-3 rounded-md mb-4 sm:mb-6 text-sm sm:text-base">
                     {error}
                 </div>
             )}
 
             {/* List edit form */}
-            <div className="bg-white shadow rounded-lg mb-6">
-                <div className="p-6 space-y-6">
+            <div className="bg-white shadow rounded-lg mb-4 sm:mb-6">
+                <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
                     {/* List details */}
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                         <div>
                             <label htmlFor="listName" className="block text-sm font-medium text-gray-700 mb-1">
                                 List Name*
@@ -340,7 +342,7 @@ const ListEditPage = () => {
                                 id="listName"
                                 value={listName}
                                 onChange={(e) => setListName(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
                                 placeholder="My Favorite Albums"
                                 required
                             />
@@ -354,9 +356,9 @@ const ListEditPage = () => {
                                 id="listDescription"
                                 value={listDescription}
                                 onChange={(e) => setListDescription(e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
                                 placeholder="A collection of my all-time favorites..."
-                                rows={3}
+                                rows={2}
                             />
                         </div>
 
@@ -370,11 +372,11 @@ const ListEditPage = () => {
                             />
                             <label htmlFor="isRanked" className="ml-2 text-sm text-gray-900 flex items-center">
                                 Make this a ranked list
-                                <Medal className="ml-1 h-4 w-4 text-purple-600" />
+                                <Medal className="ml-1 h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
                             </label>
                         </div>
 
-                        <div className="flex items-center text-sm text-gray-500">
+                        <div className="flex items-center text-xs sm:text-sm text-gray-500">
                             <span>
                                 {items.length} {items.length === 1 ?
                                 (list.listType === 'Album' ? 'album' : 'track') :
@@ -384,25 +386,26 @@ const ListEditPage = () => {
                     </div>
 
                     {/* Divider */}
-                    <div className="border-t border-gray-200 pt-6">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-lg font-medium text-gray-900">
+                    <div className="border-t border-gray-200 pt-4 sm:pt-6">
+                        <div className="flex justify-between items-center mb-3 sm:mb-4">
+                            <h2 className="text-base sm:text-lg font-medium text-gray-900">
                                 List Items
                             </h2>
                             <button
                                 onClick={() => setIsAddItemModalOpen(true)}
-                                className="flex items-center px-3 py-1.5 bg-primary-600 text-white rounded-md hover:bg-primary-700 text-sm"
+                                className="flex items-center px-2 py-1 sm:px-3 sm:py-1.5 bg-primary-600 text-white rounded-md hover:bg-primary-700 text-xs sm:text-sm"
                             >
-                                <Plus className="h-4 w-4 mr-1" />
-                                Add Items
+                                <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                <span className="hidden sm:inline">Add Items</span>
+                                <span className="sm:hidden">Add</span>
                             </button>
                         </div>
 
                         {/* List items */}
                         <div className="space-y-2">
                             {items.length === 0 ? (
-                                <div className="text-center py-8 text-gray-500 border border-dashed border-gray-300 rounded-lg">
-                                    <p>This list has no items. Click "Add Items" to get started.</p>
+                                <div className="text-center py-6 sm:py-8 text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                                    <p className="text-sm sm:text-base">This list has no items. Click "Add Items" to get started.</p>
                                 </div>
                             ) : (
                                 <DndContext
@@ -477,56 +480,111 @@ function SortableItem({ id, item, image, name, artist, isRanked, listType, onRem
         <div
             ref={setNodeRef}
             style={style}
-            className="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-2"
+            className="bg-white border border-gray-200 rounded-lg flex items-center"
         >
-            <div
-                {...attributes}
-                {...listeners}
-                className="cursor-grab active:cursor-grabbing"
-            >
-                <GripVertical className="h-6 w-6 text-gray-400" />
-            </div>
-
-            {/* Rank number */}
-            {isRanked && (
-                <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-medium">
-                    {item.number}
+            {/* Mobile Layout */}
+            <div className="sm:hidden w-full p-2 flex items-center gap-2">
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="cursor-grab active:cursor-grabbing flex-shrink-0"
+                >
+                    <GripVertical className="h-4 w-4 text-gray-400" />
                 </div>
-            )}
 
-            {/* Item image */}
-            <div className="w-12 h-12 flex-shrink-0">
-                {image ? (
-                    <img
-                        src={image}
-                        alt={name}
-                        className="w-full h-full object-cover rounded"
-                    />
-                ) : (
-                    <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
-                        {listType === 'Album' ? (
-                            <Disc className="h-6 w-6 text-gray-400" />
-                        ) : (
-                            <Music className="h-6 w-6 text-gray-400" />
-                        )}
+                {/* Rank number - mobile */}
+                {isRanked && (
+                    <div className="flex-shrink-0 w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-medium text-xs">
+                        {item.number}
                     </div>
                 )}
+
+                {/* Item image - mobile */}
+                <div className="w-10 h-10 flex-shrink-0">
+                    {image ? (
+                        <img
+                            src={image}
+                            alt={name}
+                            className="w-full h-full object-cover rounded"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                            {listType === 'Album' ? (
+                                <Disc className="h-5 w-5 text-gray-400" />
+                            ) : (
+                                <Music className="h-5 w-5 text-gray-400" />
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Item details - mobile */}
+                <div className="flex-grow min-w-0">
+                    <p className="font-medium text-gray-900 truncate text-sm leading-tight">{name}</p>
+                    <p className="text-xs text-gray-500 truncate">{artist}</p>
+                </div>
+
+                {/* Remove button - mobile */}
+                <button
+                    onClick={() => onRemove(id)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-full flex-shrink-0"
+                    title="Remove item"
+                >
+                    <Trash2 className="h-4 w-4" />
+                </button>
             </div>
 
-            {/* Item details */}
-            <div className="flex-grow">
-                <p className="font-medium text-gray-900 truncate">{name}</p>
-                <p className="text-sm text-gray-500 truncate">{artist}</p>
-            </div>
+            {/* Desktop Layout - Keep original */}
+            <div className="hidden sm:flex w-full p-3 items-center gap-2">
+                <div
+                    {...attributes}
+                    {...listeners}
+                    className="cursor-grab active:cursor-grabbing"
+                >
+                    <GripVertical className="h-6 w-6 text-gray-400" />
+                </div>
 
-            {/* Remove button */}
-            <button
-                onClick={() => onRemove(id)}
-                className="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-full"
-                title="Remove item"
-            >
-                <Trash2 className="h-5 w-5" />
-            </button>
+                {/* Rank number */}
+                {isRanked && (
+                    <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-medium">
+                        {item.number || 1}
+                    </div>
+                )}
+
+                {/* Item image */}
+                <div className="w-12 h-12 flex-shrink-0">
+                    {image ? (
+                        <img
+                            src={image}
+                            alt={name}
+                            className="w-full h-full object-cover rounded"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                            {listType === 'Album' ? (
+                                <Disc className="h-6 w-6 text-gray-400" />
+                            ) : (
+                                <Music className="h-6 w-6 text-gray-400" />
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Item details */}
+                <div className="flex-grow">
+                    <p className="font-medium text-gray-900 truncate">{name}</p>
+                    <p className="text-sm text-gray-500 truncate">{artist}</p>
+                </div>
+
+                {/* Remove button */}
+                <button
+                    onClick={() => onRemove(id)}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-gray-100 rounded-full"
+                    title="Remove item"
+                >
+                    <Trash2 className="h-5 w-5" />
+                </button>
+            </div>
         </div>
     );
 }
