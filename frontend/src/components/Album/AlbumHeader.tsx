@@ -120,8 +120,10 @@ const AlbumHeader = ({
 
                 {/* Stats and Latest Interaction */}
                 <div className="w-full space-y-4">
-                    <div className="transform px-6 scale-110 origin-center">
-                        <ItemStatsComponent itemId={album.spotifyId} />
+                    <div className="flex justify-center items-center w-full">
+                        <div className="transform scale-110 origin-center">
+                            <ItemStatsComponent itemId={album.spotifyId}/>
+                        </div>
                     </div>
 
                     <div className="transform origin-center">
