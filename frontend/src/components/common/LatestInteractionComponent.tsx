@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageSquare, SlidersHorizontal } from 'lucide-react';
+import { Heart, MessageSquare, Scale } from 'lucide-react';
 import InteractionService, { InteractionDetailDTO } from '../../api/interaction';
 import useAuthStore from '../../store/authStore';
 import NormalizedStarDisplay from '../CreateInteraction/NormalizedStarDisplay';
@@ -94,18 +94,18 @@ const LatestInteractionComponent = ({
 
     return (
         <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="p-4">
-                <div className="flex justify-between items-center mb-3">
-                    <h3 className="text-sm font-medium text-gray-700">Your Latest Activity</h3>
-                    <span className="text-xs text-gray-500">{interactionDate}</span>
+            <div className="p-3 sm:p-4">
+                <div className="flex justify-between items-center sm:mb-3">
+                    <h3 className="text-[0.700rem] sm:text-sm font-medium text-gray-700">Your Latest Activity</h3>
+                    <span className="text-[0.700rem] sm:text-xs text-gray-500">{interactionDate}</span>
                 </div>
 
                 <Link
                     to={`/interaction/${latestInteraction.aggregateId}`}
-                    className="flex items-center space-x-4 hover:bg-gray-50 p-2 rounded-md transition-colors"
+                    className="flex items-center space-x-4 hover:bg-gray-50 mt-2 rounded-md transition-colors"
                 >
                     {/* ItemHistory indicators */}
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3">
                         {/* Rating */}
                         {latestInteraction.rating && (
                             <div className="flex items-center">
@@ -117,29 +117,29 @@ const LatestInteractionComponent = ({
                                 />
 
                                 {latestInteraction.rating.isComplex && (
-                                    <SlidersHorizontal
-                                        className="ml-1 h-4 w-4 text-primary-500"
+                                    <Scale
+                                        className="ml-1 h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary-500"
                                     />
                                 )}
                             </div>
                         )}
 
+                        {/* Like icon */}
+                        {latestInteraction.isLiked ? (
+                            <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 fill-red-500"/>
+                        ) : (
+                            <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300"/>
+                        )}
+
                         {/* Review icon */}
                         {latestInteraction.review ? (
                             <MessageSquare
-                                className="h-5 w-5 text-primary-600"
+                                className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600"
                             />
                         ) : (
                             <MessageSquare
-                                className="h-5 w-5 text-gray-300"
+                                className="h-4 w-4 sm:h-5 sm:w-5 text-gray-300"
                             />
-                        )}
-
-                        {/* Like icon */}
-                        {latestInteraction.isLiked ? (
-                            <Heart className="h-5 w-5 text-red-500 fill-red-500"/>
-                        ) : (
-                            <Heart className="h-5 w-5 text-gray-300"/>
                         )}
                     </div>
                 </Link>

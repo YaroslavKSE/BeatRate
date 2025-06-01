@@ -36,7 +36,7 @@ const Profile = () => {
     if (newTabParam && isValidTab(newTabParam) && newTabParam !== activeTab) {
       setActiveTab(newTabParam as ProfileTabType);
     }
-  }, [searchParams]);
+  }, [activeTab, searchParams]);
 
   // Helper to validate tab parameters
   const isValidTab = (tab: string): boolean => {
@@ -98,7 +98,7 @@ const Profile = () => {
   return (
       <div className="max-w-6xl mx-auto">
         {/* Profile Header - Pass the tab change handler */}
-        <div className="bg-white shadow rounded-lg overflow-hidden mb-6">
+        <div className="bg-white shadow rounded-lg overflow-hidden mb-2 sm:mb-6">
           <ProfileHeader
               profile={user}
               isOwnProfile={true}

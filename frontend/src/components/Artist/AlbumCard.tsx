@@ -16,7 +16,7 @@ const AlbumCard = ({ album }: AlbumCardProps) => {
                         className="w-full h-full object-cover"
                     />
                 </div>
-                <div className="p-3">
+                <div className="p-1 sm:p-3">
                     <h3 className="font-medium text-gray-900 truncate">{album.name}</h3>
                     <div className="flex items-center mt-1 text-xs text-gray-500">
                         <span>{album.releaseDate?.split('-')[0] || 'Unknown year'}</span>

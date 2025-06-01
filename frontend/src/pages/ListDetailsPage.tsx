@@ -336,73 +336,168 @@ const ListDetailsPage = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto py-8 px-4">
+        <div className="max-w-6xl mx-auto py-2 sm:py-8 px-2 sm:px-4">
             {/* Header with back button */}
-            <div className="mb-6 flex justify-between items-center">
+            <div className="mb-4 sm:mb-6 flex justify-between items-center">
                 <button
                     onClick={() => navigate(-1)}
                     className="text-gray-600 hover:text-gray-900 flex items-center"
                 >
-                    <ArrowLeft className="h-5 w-5 mr-1" />
-                    Back
+                    <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1" />
+                    <span className="text-sm sm:text-base">Back</span>
                 </button>
 
-                <div className="w-10"></div> {/* Empty div for balance */}
+                <div className="w-10"></div>
             </div>
 
             {/* Main list details section */}
-            <div className="bg-white shadow rounded-lg mb-6">
-                <div className="p-6">
-                    {/* Creator info */}
-                    <div className="flex items-center mb-4 group">
-                        <Link to={`/people/${creatorProfile?.id}`} className="flex items-center">
-                            {creatorProfile?.avatarUrl ? (
-                                <img
-                                    src={creatorProfile.avatarUrl}
-                                    alt={creatorProfile.name}
-                                    className="h-12 w-12 rounded-full object-cover mr-3"
-                                />
-                            ) : (
-                                <div
-                                    className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-lg font-bold mr-3">
-                                    {creatorProfile?.name.charAt(0).toUpperCase()}{creatorProfile?.surname.charAt(0).toUpperCase()}
+            <div className="bg-white shadow rounded-lg mb-4 sm:mb-6">
+                <div className="p-3 sm:p-6">
+                    {/* Mobile Layout */}
+                    <div className="sm:hidden">
+                        {/* Creator info - compact */}
+                        <div className="flex items-center mb-3">
+                            <Link to={`/people/${creatorProfile?.id}`} className="flex items-center">
+                                {creatorProfile?.avatarUrl ? (
+                                    <img
+                                        src={creatorProfile.avatarUrl}
+                                        alt={creatorProfile.name}
+                                        className="h-8 w-8 rounded-full object-cover mr-2"
+                                    />
+                                ) : (
+                                    <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold mr-2">
+                                        {creatorProfile?.name.charAt(0).toUpperCase()}{creatorProfile?.surname.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <div>
+                                    <span className="font-medium text-gray-900 text-sm">{creatorProfile?.name} {creatorProfile?.surname}</span>
+                                    <span className="text-gray-500 text-xs block">@{creatorProfile?.username}</span>
                                 </div>
-                            )}
-                            <div>
-                                <span
-                                    className="font-medium text-gray-900 group-hover:text-primary-600">{creatorProfile?.name} {creatorProfile?.surname}</span>
-                                <span className="text-gray-500 text-sm block">@{creatorProfile?.username}</span>
+                            </Link>
+                        </div>
+
+                        {/* List title and meta */}
+                        <h1 className="text-lg font-bold text-gray-900 mb-2">{list.listName}</h1>
+
+                        {/* Date and type */}
+                        <div className="flex items-center text-gray-600 text-xs mb-3">
+                            <Calendar className="h-3 w-3 mr-1"/>
+                            {formatDate(list.createdAt)}
+                        </div>
+
+                        {/* Description */}
+                        {list.listDescription && (
+                            <div className="mb-4 text-gray-700 text-sm">
+                                <p>{list.listDescription}</p>
                             </div>
-                        </Link>
+                        )}
                     </div>
-                    {/* List details */}
-                    <div className="flex flex-col md:flex-row gap-6 mb-6">
-                        {/* List info */}
-                        <div className="flex-grow">
-                            <div className="flex items-center mb-2">
-                                <h1 className="text-2xl font-bold text-gray-900 mr-3">{list.listName}</h1>
-                            </div>
 
-                            {/* List type and date */}
-                            <div className="flex items-center text-gray-600 text-sm mb-4">
-                                <span className="flex items-center">
-                                    <Calendar className="h-3.5 w-3.5 mr-1"/>
-                                    {formatDate(list.createdAt)}
-                                </span>
-                            </div>
-
-                            {/* Description */}
-                            {list.listDescription && (
-                                <div className="mb-4 text-gray-700">
-                                    <p>{list.listDescription}</p>
+                    {/* Desktop Layout - Keep original */}
+                    <div className="hidden sm:block">
+                        {/* Creator info */}
+                        <div className="flex items-center mb-4 group">
+                            <Link to={`/people/${creatorProfile?.id}`} className="flex items-center">
+                                {creatorProfile?.avatarUrl ? (
+                                    <img
+                                        src={creatorProfile.avatarUrl}
+                                        alt={creatorProfile.name}
+                                        className="h-12 w-12 rounded-full object-cover mr-3"
+                                    />
+                                ) : (
+                                    <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-lg font-bold mr-3">
+                                        {creatorProfile?.name.charAt(0).toUpperCase()}{creatorProfile?.surname.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <div>
+                                    <span className="font-medium text-gray-900 group-hover:text-primary-600">{creatorProfile?.name} {creatorProfile?.surname}</span>
+                                    <span className="text-gray-500 text-sm block">@{creatorProfile?.username}</span>
                                 </div>
-                            )}
+                            </Link>
+                        </div>
+
+                        {/* List details */}
+                        <div className="flex flex-col md:flex-row gap-6 mb-6">
+                            {/* List info */}
+                            <div className="flex-grow">
+                                <div className="flex items-center mb-2">
+                                    <h1 className="text-2xl font-bold text-gray-900 mr-3">{list.listName}</h1>
+                                </div>
+
+                                {/* List type and date */}
+                                <div className="flex items-center text-gray-600 text-sm mb-4">
+                                    <span className="flex items-center">
+                                        <Calendar className="h-3.5 w-3.5 mr-1"/>
+                                        {formatDate(list.createdAt)}
+                                    </span>
+                                </div>
+
+                                {/* Description */}
+                                {list.listDescription && (
+                                    <div className="mb-4 text-gray-700">
+                                        <p>{list.listDescription}</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
                     {/* List items grid */}
-                    <div className="mb-6">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <div className="mb-4 sm:mb-6">
+                        {/* Mobile Grid - 3 columns */}
+                        <div className="grid grid-cols-3 gap-2 sm:hidden">
+                            {list.items.map((item, index) => (
+                                <div
+                                    key={item.spotifyId}
+                                    className="relative flex flex-col items-center"
+                                >
+                                    {/* Item card - mobile */}
+                                    <div
+                                        onClick={() => navigateToItemPage(item.spotifyId)}
+                                        className="w-full group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer mb-1"
+                                    >
+                                        {/* Item image */}
+                                        <div className="aspect-square w-full overflow-hidden rounded-t-lg">
+                                            {itemImages[item.spotifyId] ? (
+                                                <img
+                                                    src={itemImages[item.spotifyId]}
+                                                    alt={itemNames[item.spotifyId] || 'Unknown item'}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                                    {list.listType === 'Album' ? (
+                                                        <Disc className="h-6 w-6 text-gray-400"/>
+                                                    ) : (
+                                                        <Music className="h-6 w-6 text-gray-400"/>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Item details - compact */}
+                                        <div className="p-1">
+                                            <p className="text-xs font-medium text-gray-900 truncate leading-tight">
+                                                {itemNames[item.spotifyId] || 'Unknown item'}
+                                            </p>
+                                            <p className="text-[0.700rem] text-gray-500 truncate leading-tight">
+                                                {itemArtists[item.spotifyId] || 'Unknown artist'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Show rank if list is ranked - mobile */}
+                                    {list.isRanked && (
+                                        <div className="flex-shrink-0 w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-medium text-xs">
+                                            {item.number || index + 1}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop Grid - Keep original 5 columns */}
+                        <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                             {list.items.map((item, index) => (
                                 <div
                                     key={item.spotifyId}
@@ -443,7 +538,7 @@ const ListDetailsPage = () => {
                                         </div>
                                     </div>
 
-                                    {/* Show rank if list is ranked - now below the card */}
+                                    {/* Show rank if list is ranked - desktop */}
                                     {list.isRanked && (
                                         <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-medium">
                                             {item.number || index + 1}
@@ -455,16 +550,16 @@ const ListDetailsPage = () => {
                     </div>
 
                     {/* List actions */}
-                    <div className="flex items-center space-x-4 border-t border-gray-200 pt-4">
+                    <div className="flex items-center space-x-3 sm:space-x-4 border-t border-gray-200 pt-3 sm:pt-4">
                         {isAuthenticated && (
                             <button
                                 onClick={handleToggleLike}
                                 disabled={processingLike}
-                                className={`flex items-center text-sm ${
+                                className={`flex items-center text-xs sm:text-sm ${
                                     hasLiked ? 'text-primary-600' : 'text-gray-500 hover:text-primary-600'
                                 }`}
                             >
-                                <ThumbsUp className={`h-4 w-4 mr-1 ${hasLiked ? 'fill-primary-600' : ''}`}/>
+                                <ThumbsUp className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 ${hasLiked ? 'fill-primary-600' : ''}`}/>
                                 <span>{hasLiked ? 'Liked' : 'Like'}</span>
                                 {likeCount > 0 && <span className="ml-1">({likeCount})</span>}
                             </button>
@@ -472,28 +567,22 @@ const ListDetailsPage = () => {
 
                         <button
                             onClick={() => document.getElementById('comments-section')?.scrollIntoView({behavior: 'smooth'})}
-                            className="flex items-center text-sm text-gray-500 hover:text-primary-600"
+                            className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-primary-600"
                         >
-                            <MessageSquare className="h-4 w-4 mr-1"/>
+                            <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1"/>
                             <span>Comments</span>
                             {totalComments > 0 && <span className="ml-1">({totalComments})</span>}
-                        </button>
-
-                        <button
-                            className="flex items-center text-sm text-gray-500 hover:text-primary-600"
-                        >
                         </button>
 
                         {isAuthenticated && user?.id === list.userId && (
                             <button
                                 onClick={() => {
-                                    // Navigate to edit page or open edit modal
                                     navigate(`/lists/edit/${list.listId}`);
                                 }}
-                                className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+                                className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700"
                             >
-                                <Pencil className="h-4 w-4 mr-1"/>
-                                <span>Edit</span>
+                                <Pencil className="h-3 w-3 sm:h-4 sm:w-4 mr-1"/>
+                                <span className="hidden sm:inline">Edit</span>
                             </button>
                         )}
 
@@ -502,10 +591,10 @@ const ListDetailsPage = () => {
                                 onClick={() => {
                                     alert('Report functionality to be implemented');
                                 }}
-                                className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+                                className="flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-700"
                             >
-                                <Flag className="h-4 w-4 mr-1"/>
-                                <span>Report</span>
+                                <Flag className="h-3 w-3 sm:h-4 sm:w-4 mr-1"/>
+                                <span className="hidden sm:inline">Report</span>
                             </button>
                         )}
                     </div>
@@ -513,27 +602,26 @@ const ListDetailsPage = () => {
             </div>
 
             {/* Comments section */}
-            <div id="comments-section" className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-xl font-bold mb-6 flex items-center">
-                    <MessageSquare className="h-5 w-5 mr-2 text-gray-500"/>
-                    Comments
-                    {totalComments > 0 && <span className="ml-2 text-gray-500">({totalComments})</span>}
+            <div id="comments-section" className="bg-white shadow rounded-lg p-3 sm:p-6">
+                <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 flex items-center">
+                    <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-gray-500"/>
+                    <span className="text-sm sm:text-xl">Comments</span>
+                    {totalComments > 0 && <span className="ml-2 text-gray-500 text-sm sm:text-xl">({totalComments})</span>}
                 </h2>
 
                 {/* Comment form */}
                 {isAuthenticated ? (
-                    <div className="mb-6">
+                    <div className="mb-4 sm:mb-6">
                         <div className="flex">
-                            <div className="mr-3 flex-shrink-0">
+                            <div className="mr-2 sm:mr-3 flex-shrink-0">
                                 {user?.avatarUrl ? (
                                     <img
                                         src={user.avatarUrl}
                                         alt={user.name}
-                                        className="h-10 w-10 rounded-full object-cover"
+                                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover"
                                     />
                                 ) : (
-                                    <div
-                                        className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-lg font-bold">
+                                    <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-sm sm:text-lg font-bold">
                                         {user?.name.charAt(0).toUpperCase()}{user?.surname.charAt(0).toUpperCase()}
                                     </div>
                                 )}
@@ -543,25 +631,25 @@ const ListDetailsPage = () => {
                                     value={newComment}
                                     onChange={(e) => setNewComment(e.target.value)}
                                     placeholder="Write a comment..."
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 text-sm sm:text-base"
+                                    rows={2}
                                 />
                                 <button
                                     onClick={handleSubmitComment}
                                     disabled={!newComment.trim() || submittingComment}
-                                    className="absolute bottom-3 right-3 p-1 rounded-full bg-primary-500 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                    className="absolute bottom-2 right-2 p-1 rounded-full bg-primary-500 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
                                 >
-                                    <Send className="h-4 w-4" />
+                                    <Send className="h-3 w-3 sm:h-4 sm:w-4" />
                                 </button>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="mb-6 bg-gray-50 p-4 rounded-md text-center">
-                        <p className="text-gray-600 mb-2">You need to be logged in to comment</p>
+                    <div className="mb-4 sm:mb-6 bg-gray-50 p-3 sm:p-4 rounded-md text-center">
+                        <p className="text-gray-600 mb-2 text-sm sm:text-base">You need to be logged in to comment</p>
                         <button
                             onClick={() => navigate('/login', { state: { from: `/lists/${id}` } })}
-                            className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+                            className="px-3 py-1.5 sm:px-4 sm:py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 text-sm sm:text-base"
                         >
                             Log In
                         </button>
@@ -569,24 +657,79 @@ const ListDetailsPage = () => {
                 )}
 
                 {/* Comments list */}
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                     {commentsError && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-md">
+                        <div className="bg-red-50 border border-red-200 text-red-700 p-3 sm:p-4 rounded-md">
                             {commentsError}
                         </div>
                     )}
 
                     {comments.length === 0 && !commentsLoading && !commentsError ? (
-                        <div className="text-center py-8 text-gray-500">
-                            No comments yet. Be the first to comment!
+                        <div className="text-center py-6 sm:py-8 text-gray-500">
+                            <p className="text-sm sm:text-base">No comments yet. Be the first to comment!</p>
                         </div>
                     ) : (
                         <div className="divide-y divide-gray-200">
                             {comments.map((comment) => {
                                 const commentUser = commentUsers.get(comment.userId);
                                 return (
-                                    <div key={comment.commentId} className="py-4">
-                                        <div className="flex">
+                                    <div key={comment.commentId} className="py-3 sm:py-4">
+                                        {/* Mobile Comment Layout */}
+                                        <div className="sm:hidden flex">
+                                            <div className="mr-2 flex-shrink-0">
+                                                <Link to={`/people/${comment.userId}`}>
+                                                    {commentUser?.avatarUrl ? (
+                                                        <img
+                                                            src={commentUser.avatarUrl}
+                                                            alt={`${commentUser.name}`}
+                                                            className="h-7 w-7 rounded-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="h-7 w-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 text-xs font-bold">
+                                                            {commentUser ? (
+                                                                `${commentUser.name.charAt(0)}${commentUser.surname.charAt(0)}`
+                                                            ) : (
+                                                                '?'
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </Link>
+                                            </div>
+                                            <div className="flex-grow min-w-0">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <div className="flex-grow min-w-0">
+                                                        <Link
+                                                            to={`/people/${comment.userId}`}
+                                                            className="font-medium text-gray-900 hover:text-primary-600 text-sm truncate"
+                                                        >
+                                                            {commentUser ? (
+                                                                <>
+                                                                    {commentUser.name} {commentUser.surname}
+                                                                </>
+                                                            ) : (
+                                                                'User'
+                                                            )}
+                                                        </Link>
+                                                        <span className="text-gray-500 text-xs ml-2">
+                                                            {formatDate(comment.commentedAt)}
+                                                        </span>
+                                                    </div>
+                                                    {user && user.id === comment.userId && (
+                                                        <button
+                                                            onClick={() => handleDeleteComment(comment.commentId)}
+                                                            className="text-gray-400 hover:text-red-500 ml-2 flex-shrink-0"
+                                                            title="Delete comment"
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <p className="text-gray-800 text-sm leading-relaxed">{comment.commentText}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Desktop Comment Layout - Keep original */}
+                                        <div className="hidden sm:flex">
                                             <div className="mr-3 flex-shrink-0">
                                                 <Link to={`/people/${comment.userId}`}>
                                                     {commentUser?.avatarUrl ? (
@@ -650,11 +793,11 @@ const ListDetailsPage = () => {
                             <button
                                 onClick={handleLoadMoreComments}
                                 disabled={commentsLoading}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 text-sm sm:text-base"
                             >
                                 {commentsLoading ? (
                                     <>
-                                        <span className="inline-block h-4 w-4 border-t-2 border-b-2 border-primary-600 rounded-full animate-spin mr-2 align-middle"></span>
+                                        <span className="inline-block h-3 w-3 sm:h-4 sm:w-4 border-t-2 border-b-2 border-primary-600 rounded-full animate-spin mr-2 align-middle"></span>
                                         Loading...
                                     </>
                                 ) : (

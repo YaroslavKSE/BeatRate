@@ -350,10 +350,10 @@ const Diary = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto py-8">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Music Diary</h1>
-                <p className="text-gray-600">A chronological record of your music experiences and thoughts</p>
+        <div className="max-w-6xl mx-auto py-2">
+            <div className="mb-2 sm:mb-6">
+                <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2">Your Music Diary</h1>
+                <p className="hidden sm:block text-gray-600">A chronological record of your music experiences and thoughts</p>
             </div>
 
             {error && <DiaryErrorState error={error} onRetry={loadInitialDiaryEntries} />}
@@ -370,7 +370,7 @@ const Diary = () => {
             ) : (
                 <>
                     {totalInteractions > 0 && (
-                        <div className="mb-4 text-sm text-gray-600">
+                        <div className="mb-4 text-xs sm:text-sm text-gray-600">
                             Showing entries for your music interactions ({diaryEntries.length} of {totalInteractions} total)
                         </div>
                     )}

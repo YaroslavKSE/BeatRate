@@ -11,10 +11,10 @@ interface DiaryDateGroupProps {
 const DiaryDateGroup = ({ group, onReviewClick, onDeleteClick }: DiaryDateGroupProps) => {
     return (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="bg-primary-50 px-6 py-3 border-b border-primary-100">
+            <div className="bg-primary-50 px-6 py-2 sm:py-3 border-b border-primary-100">
                 <div className="flex items-center">
-                    <Calendar className="h-5 w-5 text-primary-600 mr-2" />
-                    <h2 className="text-lg font-medium text-primary-800">{group.date}</h2>
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 mr-2" />
+                    <h2 className="text-sm sm:text-lg font-medium text-primary-800">{group.date}</h2>
                 </div>
             </div>
 

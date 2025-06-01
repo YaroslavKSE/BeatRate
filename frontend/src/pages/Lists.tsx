@@ -263,23 +263,23 @@ const Lists = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto py-8 px-4">
+        <div className="max-w-6xl mx-auto py-2 px-4">
             {/* Header section */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-2 sm:mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Lists</h1>
-                    <p className="text-gray-600">
+                    <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-2">Your Lists</h1>
+                    <p className="text-xs sm:text-base text-gray-600">
                         {getTotalLists() > 0
                             ? `You have ${getTotalLists()} ${getTotalLists() === 1 ? 'list' : 'lists'}`
-                            : 'Create your first list to organize your music'}
+                            : 'You have no lists'}
                     </p>
                 </div>
 
                 <button
                     onClick={handleCreateList}
-                    className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
+                    className="flex items-center px-3 py-2 bg-primary-600 text-xs sm:text-base text-white rounded-md hover:bg-primary-700 transition-colors"
                 >
-                    <Plus className="h-5 w-5 mr-2" />
+                    <Plus className="h-3 w-3 mr-1 sm:h-4 sm:w-4 sm:mr-2" />
                     Create List
                 </button>
             </div>
@@ -312,10 +312,10 @@ const Lists = () => {
 
             {/* List Type Toggle */}
             {(!isLoading() || albumLists.length > 0 || trackLists.length > 0) && (
-                <div className="flex space-x-2 mb-6">
+                <div className="flex space-x-2 mb-3 sm:mb-6">
                     <button
                         onClick={() => handleListTypeChange('Album')}
-                        className={`px-4 py-2 rounded-md font-medium text-sm flex items-center ${
+                        className={`px-4 py-2 rounded-md font-medium text-xs sm:text-sm flex items-center ${
                             activeListType === 'Album'
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
@@ -326,7 +326,7 @@ const Lists = () => {
                     </button>
                     <button
                         onClick={() => handleListTypeChange('Track')}
-                        className={`px-4 py-2 rounded-md font-medium text-sm flex items-center ${
+                        className={`px-4 py-2 rounded-md font-medium text-xs sm:text-sm flex items-center ${
                             activeListType === 'Track'
                                 ? 'bg-primary-600 text-white'
                                 : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
@@ -350,17 +350,19 @@ const Lists = () => {
 
             {/* Empty state when no lists at all */}
             {!isLoading() && albumLists.length === 0 && trackLists.length === 0 && (
-                <div className="bg-white shadow rounded-lg p-8 text-center">
-                    <List className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-gray-800 mb-2">You don't have any lists yet</h2>
-                    <p className="text-gray-600 mb-6">
+                <div className="bg-white shadow rounded-lg p-6 sm:p-8 text-center">
+                    <List className="h-10 w-10 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-3 sm:mb-4"/>
+                    <h2 className="text-base sm:text-xl font-semibold text-gray-800 mb-1 sm:mb-2">
+                        You don't have any lists yet
+                    </h2>
+                    <p className="text-xs sm:text-base text-gray-600 mb-4 sm:mb-6">
                         Create your first list to organize your favorite albums and tracks
                     </p>
                     <button
                         onClick={handleCreateList}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+                        className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                     >
-                        <Plus className="h-5 w-5 mr-2" />
+                        <Plus className="h-3 w-3 sm:h-5 sm:w-5 mr-1 sm:mr-2"/>
                         Create Your First List
                     </button>
                 </div>
@@ -368,20 +370,22 @@ const Lists = () => {
 
             {/* Empty state for specific list type */}
             {!isLoading() && getTotalLists() > 0 && getCurrentLists().length === 0 && (
-                <div className="bg-white shadow rounded-lg p-8 text-center">
-                    <List className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                        You don't have any {activeListType.toLowerCase()} lists yet
+                <div className="bg-white shadow rounded-lg p-6 sm:p-8 text-center">
+                    <List className="h-10 w-10 sm:h-16 sm:w-16 text-gray-400 mx-auto mb-3 sm:mb-4"/>
+                    <h2 className="text-base sm:text-xl font-semibold text-gray-800 mb-1 sm:mb-2">
+                        You don't have
+                        any {getTotalLists() === 0 ? 'lists' : `${activeListType.toLowerCase()} lists`} yet
                     </h2>
-                    <p className="text-gray-600 mb-6">
-                        Create your first {activeListType.toLowerCase()} list to organize your music
+                    <p className="text-xs sm:text-base text-gray-600 mb-4 sm:mb-6">
+                        Create your first {getTotalLists() === 0 ? '' : activeListType.toLowerCase() + ' '}list to
+                        organize your music
                     </p>
                     <button
                         onClick={handleCreateList}
-                        className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
+                        className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-transparent rounded-md shadow-sm text-xs sm:text-sm font-medium text-white bg-primary-600 hover:bg-primary-700"
                     >
-                        <Plus className="h-5 w-5 mr-2" />
-                        Create {activeListType} List
+                        <Plus className="h-3 w-3 sm:h-5 sm:w-5 mr-1 sm:mr-2"/>
+                        Create {getTotalLists() === 0 ? 'Your First' : activeListType} List
                     </button>
                 </div>
             )}
@@ -408,7 +412,7 @@ const Lists = () => {
                 >
                     {isLoadingMore() && (
                         <div className="flex items-center">
-                            <Loader className="h-5 w-5 text-primary-600 animate-spin mr-2" />
+                            <Loader className="h-5 w-5 text-primary-600 animate-spin mr-2"/>
                             <span className="text-gray-600">Loading more lists...</span>
                         </div>
                     )}
