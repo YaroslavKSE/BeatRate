@@ -13,9 +13,9 @@ export const auth0Client = new auth0.WebAuth({
   domain: auth0Config.domain,
   clientID: auth0Config.clientId,
   redirectUri: auth0Config.redirectUri,
-  responseType: 'token id_token',
+  responseType: 'code',
   audience: auth0Config.audience,
-  scope: 'openid profile email'
+  scope: 'openid profile email offline_access'
 });
 
 // Helper function to handle the Auth0 login
@@ -30,56 +30,36 @@ export const handleAuth0Login = (connection: string = 'google-oauth2') => {
   // This will redirect the browser, so no return value is needed
 };
 
-// Function to handle the authentication callback
+// Updated function to handle the authentication callback for authorization code flow
 export const handleAuthCallback = () => {
-  return new Promise<{ accessToken: string, provider: string }>((resolve, reject) => {
-    auth0Client.parseHash((err, authResult) => {
-      if (err) {
-        console.error('Error parsing hash:', err);
-        reject(err);
-        return;
-      }
+  return new Promise<{ code: string, state?: string }>((resolve, reject) => {
+    // Parse the URL parameters to get the authorization code
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
 
-      if (authResult && authResult.accessToken) {
-        console.log('Auth result:', authResult);
+    if (error) {
+      console.error('Auth0 callback error:', error, errorDescription);
+      reject(new Error(`Auth0 error: ${error} - ${errorDescription}`));
+      return;
+    }
 
-        // TypeScript safe version - explicitly check that accessToken is defined
-        const accessToken = authResult.accessToken;
-        if (!accessToken) {
-          reject(new Error('Access token is undefined'));
-          return;
-        }
+    if (!code) {
+      console.error('No authorization code received');
+      reject(new Error('No authorization code received from Auth0'));
+      return;
+    }
 
-        // Get user info to determine provider
-        auth0Client.client.userInfo(accessToken, (err, user) => {
-          if (err) {
-            console.error('Error getting user info:', err);
-            reject(err);
-            return;
-          }
-
-          // Make sure user and user.sub are defined
-          if (!user || !user.sub) {
-            reject(new Error('User information is incomplete'));
-            return;
-          }
-
-          // Determine the provider from the user's identities
-          const provider = user.sub.startsWith('google-oauth2') ? 'google' : 'auth0';
-
-          resolve({
-            accessToken,
-            provider
-          });
-        });
-      } else {
-        reject(new Error('Invalid authentication result'));
-      }
+    resolve({
+      code,
+      state: state || undefined
     });
   });
 };
 
-// Function to handle Auth0 logout
+// Function to handle Auth0 logout (unchanged)
 export const handleAuth0Logout = async () => {
   try {
     auth0Client.logout({

@@ -258,10 +258,10 @@ const SearchPage = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto py-8">
+        <div className="max-w-6xl mx-auto py-2">
             <div className="mb-4">
-                <h1 className="text-3xl font-bold mb-2">Search Results</h1>
-                <p className="text-gray-600">
+                <h1 className="text-xl sm:text-3xl font-bold mb-2">Search Results</h1>
+                <p className="text-xs sm:text-base text-gray-600">
                     {query ? `Showing results for "${query}"` : 'Enter a search term to find music'}
                 </p>
             </div>

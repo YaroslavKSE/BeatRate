@@ -87,7 +87,7 @@ const AudioVisualizer = () => {
     }, []);
 
     return (
-        <div className="flex justify-center items-end h-6 w-full" ref={barsRef}></div>
+        <div className="flex justify-center items-end h-6 w-full scale-75 sm:scale-100" ref={barsRef}></div>
     );
 };
 

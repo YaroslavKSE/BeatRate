@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using UserService.Application.Commands;
 using UserService.Application.DTOs;
-using UserService.Application.Interfaces;
 using UserService.Domain.Exceptions;
 using UserService.Domain.Interfaces;
 
@@ -12,18 +11,15 @@ namespace UserService.Application.Handlers.Avatars;
 public class CompleteAvatarUploadCommandHandler : IRequestHandler<CompleteAvatarUploadCommand, UserResponse>
 {
     private readonly IUserRepository _userRepository;
-    private readonly IAuth0Service _auth0Service;
     private readonly ILogger<CompleteAvatarUploadCommandHandler> _logger;
     private readonly IValidator<CompleteAvatarUploadCommand> _validator;
 
     public CompleteAvatarUploadCommandHandler(
         IUserRepository userRepository,
-        IAuth0Service auth0Service,
         ILogger<CompleteAvatarUploadCommandHandler> logger,
         IValidator<CompleteAvatarUploadCommand> validator)
     {
         _userRepository = userRepository;
-        _auth0Service = auth0Service;
         _logger = logger;
         _validator = validator;
     }
@@ -40,15 +36,13 @@ public class CompleteAvatarUploadCommandHandler : IRequestHandler<CompleteAvatar
         if (user == null)
             throw new NotFoundException($"User with Auth0 ID '{command.Auth0UserId}' not found");
 
-        // Update the user entity with the new avatar URL
+        // Update our database with the new avatar URL
+        // Our database is now the source of truth for avatars
         user.UpdateAvatar(command.AvatarUrl);
         await _userRepository.SaveChangesAsync();
 
-        // Update the user's avatar in Auth0
-        await _auth0Service.UpdateUserPictureAsync(command.Auth0UserId, command.AvatarUrl);
-
-        _logger.LogInformation("Completed avatar upload for user {UserId} with Auth0 ID {Auth0UserId}", user.Id,
-            command.Auth0UserId);
+        _logger.LogInformation("Completed avatar upload for user {UserId}: {AvatarUrl}",
+            user.Id, command.AvatarUrl);
 
         // Return updated user
         return new UserResponse

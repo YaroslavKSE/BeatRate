@@ -46,7 +46,7 @@ const AlbumContentTabs = ({
 
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-            <div className="border-b border-gray-200 overflow-x-auto">
+            <div className="border-b border-gray-200">
                 <nav className="flex -mb-px whitespace-nowrap">
                     <TabButton
                         active={activeTab === 'tracks'}

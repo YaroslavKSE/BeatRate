@@ -21,10 +21,10 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     const baseClasses = "font-medium flex items-center transition-colors";
 
     if (variant === 'header') {
-      return `${baseClasses} px-4 py-1 rounded-full text-sm ${
+      return `${baseClasses} px-2 sm:px-4 py-1 rounded-full text-xs sm:text-sm ${
         isFollowing 
           ? 'bg-white text-primary-700 hover:bg-primary-100' 
-          : 'bg-blue-600 text-white hover:bg-blue-700'
+          : 'bg-blue-600 text-white sm:hover:bg-blue-700'
       }`;
     } else if (variant === 'card') {
       return `${baseClasses} px-3 py-1.5 border rounded text-sm ${
@@ -49,11 +49,11 @@ const FollowButton: React.FC<FollowButtonProps> = ({
       className={getButtonClasses()}
     >
       {isLoading ? (
-        <Loader className="h-4 w-4 mr-2 animate-spin" />
+        <Loader className="h-3 w-3 sm:h-4 sm:w-4 mr-2 animate-spin" />
       ) : isFollowing ? (
-        <UserCheck className="h-4 w-4 mr-2" />
+        <UserCheck className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
       ) : (
-        <UserPlus className="h-4 w-4 mr-2" />
+        <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
       )}
       {isFollowing ? 'Following' : 'Follow'}
     </button>

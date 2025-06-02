@@ -25,16 +25,34 @@ const AlbumResults: React.FC<AlbumResultsProps> = ({
                                                    }) => {
     if (isLoading && albums.length === 0) {
         return (
-            <div className="animate-pulse grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                {[...Array(compact ? 5 : 10)].map((_, i) => (
-                    <div key={i} className="bg-white rounded-lg shadow overflow-hidden">
-                        <div className="bg-gray-200 aspect-square w-full"></div>
-                        <div className="p-3">
-                            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                        </div>
+            <div className="animate-pulse">
+                {/* Mobile skeleton */}
+                <div className="sm:hidden">
+                    <div className="flex space-x-3 overflow-x-hidden px-1">
+                        {[...Array(3)].map((_, i) => (
+                            <div key={i} className="flex-none w-32">
+                                <div className="bg-gray-200 aspect-square w-full rounded-lg"></div>
+                                <div className="p-2">
+                                    <div className="h-3 bg-gray-200 rounded w-3/4 mb-1"></div>
+                                    <div className="h-2 bg-gray-200 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                ))}
+                </div>
+
+                {/* Desktop skeleton */}
+                <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                    {[...Array(compact ? 5 : 10)].map((_, i) => (
+                        <div key={i} className="bg-white rounded-lg shadow overflow-hidden">
+                            <div className="bg-gray-200 aspect-square w-full"></div>
+                            <div className="p-3">
+                                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }
@@ -46,7 +64,7 @@ const AlbumResults: React.FC<AlbumResultsProps> = ({
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">Albums</h2>
+                <h2 className="text-lg sm:text-xl font-bold">Albums</h2>
                 {compact && onShowMore && totalCount > albums.length && (
                     <button
                         type="button"
@@ -58,9 +76,31 @@ const AlbumResults: React.FC<AlbumResultsProps> = ({
                 )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {/* Mobile Layout - Conditional rendering */}
+            <div className="sm:hidden">
+                {compact ? (
+                    /* Horizontal scrolling for "All Results" */
+                    <div className="flex space-x-3 overflow-x-auto pb-2 px-1">
+                        {albums.map((album) => (
+                            <div key={album.spotifyId} className="flex-none w-32">
+                                <AlbumCard album={album} mobile={true} compact={compact} />
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    /* Grid layout for dedicated Albums tab */
+                    <div className="grid grid-cols-2 gap-3">
+                        {albums.map((album) => (
+                            <AlbumCard key={album.spotifyId} album={album} mobile={true} compact={compact} />
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Desktop Layout - Grid */}
+            <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {albums.map((album) => (
-                    <AlbumCard key={album.spotifyId} album={album} />
+                    <AlbumCard key={album.spotifyId} album={album} mobile={false} compact={compact} />
                 ))}
             </div>
 
