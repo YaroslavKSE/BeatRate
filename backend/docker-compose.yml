@@ -132,6 +132,7 @@ services:
       - Auth0__Domain=${AUTH0_DOMAIN}
       - Auth0__Audience=${AUTH0_AUDIENCE}
       - Cors__AllowedOrigins__0=${FRONTEND_BASE_URL}
+      - Services__UserService__BaseUrl=${SERVICES_USERSERVICE_BASEURL}
     ports:
       - "5003:80"
     depends_on:

@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MusicInteraction.Infrastructure.Auth0;
+using MusicInteraction.Infrastructure.Extensions;
 using MusicInteraction.Infrastructure.MongoDB;
 using MusicInteraction.Infrastructure.PostgreSQL;
 
+// Add services to the container.
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -53,6 +55,9 @@ builder.Services.AddMongoDbServices();
 // Register PostgreSQL services for interactions
 builder.Services.AddPostgreSQLServices();
 
+// Register external services (User Service, etc.)
+builder.Services.AddExternalServices(builder.Configuration);
+
 // Register MediatR services
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(PostInteractionCommand).Assembly));
 
@@ -79,7 +84,6 @@ builder.Services.AddAuthentication(options =>
         RoleClaimType = "permissions"
     };
 
-    // Add events similar to UserService
     options.Events = new JwtBearerEvents
     {
         OnTokenValidated = context =>
@@ -105,7 +109,6 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        // Get allowed origins from configuration based on environment
         var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
         
         var logger = builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
@@ -121,10 +124,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add authorization
 builder.Services.AddAuthorization();
-
-// Basic health checks
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
@@ -138,9 +138,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("CorsPolicy");  // CORS must come BEFORE authentication
-app.UseAuthentication();     // Then authentication
-app.UseAuthorization();      // Then authorization
+app.UseCors("CorsPolicy");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 app.MapHealthChecks("/health");
