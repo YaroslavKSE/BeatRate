@@ -1,35 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import useAuthStore from './store/authStore';
 import { handleAuthCallback } from './utils/auth0-config';
 import './App.css';
 
-// Layout Components
+// Layout Components (keep these as static imports since they're used immediately)
 import MainLayout from './components/layout/MainLayout';
 import LoadingIndicator from './components/common/LoadingIndicator';
 import TokenRefreshManager from './components/auth/TokenRefreshManager';
 
-// Page Components
+// Core pages that are likely to be accessed immediately
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Profile from './pages/Profile';
-import Search from './pages/Search';
-import Album from './pages/Album';
-import Song from './pages/Song';
-import Artist from './pages/Artist';
 import NotFound from "./pages/NotFound";
-import CreateGradingMethod from './pages/CreateGradingMethod';
-import ViewGradingMethod from './pages/ViewGradingMethod';
-import Diary from './pages/Diary';
-import PeoplePage from './pages/People';
-import UserProfilePage from './pages/UserProfile';
-import CreateInteractionPage from './pages/CreateInteractionPage';
-import InteractionDetailPage from './pages/InteractionDetailPage';
-import FollowingFeed from './pages/FollowingFeed';
-import Lists from "./pages/Lists";
-import ListDetailsPage from './pages/ListDetailsPage';
-import ListEditPage from './pages/ListEditPage';
+
+// Lazy load pages that may not be immediately needed
+const Profile = lazy(() => import('./pages/Profile'));
+const Search = lazy(() => import('./pages/Search'));
+const Album = lazy(() => import('./pages/Album'));
+const Song = lazy(() => import('./pages/Song'));
+const Artist = lazy(() => import('./pages/Artist'));
+const CreateGradingMethod = lazy(() => import('./pages/CreateGradingMethod'));
+const ViewGradingMethod = lazy(() => import('./pages/ViewGradingMethod'));
+const Diary = lazy(() => import('./pages/Diary'));
+const PeoplePage = lazy(() => import('./pages/People'));
+const UserProfilePage = lazy(() => import('./pages/UserProfile'));
+const CreateInteractionPage = lazy(() => import('./pages/CreateInteractionPage'));
+const InteractionDetailPage = lazy(() => import('./pages/InteractionDetailPage'));
+const FollowingFeed = lazy(() => import('./pages/FollowingFeed'));
+const Lists = lazy(() => import('./pages/Lists'));
+const ListDetailsPage = lazy(() => import('./pages/ListDetailsPage'));
+const ListEditPage = lazy(() => import('./pages/ListEditPage'));
+
+// Loading component for lazy-loaded routes
+const RouteLoader = () => (
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
+        <LoadingIndicator size="large" text="Loading page..." />
+    </div>
+);
 
 // Auth callback handler component
 const AuthCallback = () => {
@@ -41,17 +50,15 @@ const AuthCallback = () => {
             try {
                 console.log('=== AUTH CALLBACK PROCESSING ===');
 
-                // Get the authorization code from the callback
                 const { code, state } = await handleAuthCallback();
 
                 console.log('Authorization code received:', code ? 'yes' : 'no');
                 console.log('State:', state);
 
-                // Prepare the social login request with authorization code
                 const socialLoginParams = {
                     code: code,
                     redirectUri: `${window.location.origin}/callback`,
-                    provider: 'google' // You might want to determine this dynamically based on state
+                    provider: 'google'
                 };
 
                 console.log('Calling socialLogin with:', {
@@ -60,16 +67,13 @@ const AuthCallback = () => {
                     provider: socialLoginParams.provider
                 });
 
-                // Use the store's socialLogin function with the authorization code
                 await socialLogin(socialLoginParams.code, socialLoginParams.redirectUri, socialLoginParams.provider);
 
                 console.log('Social login successful, redirecting...');
 
-                // Redirect to home page or the original destination after successful login
                 window.location.href = location.state?.from || '/';
             } catch (error) {
                 console.error('Auth callback error:', error);
-                // Add more specific error handling
                 if (error instanceof Error) {
                     console.error('Error message:', error.message);
                 }
@@ -80,7 +84,6 @@ const AuthCallback = () => {
         processAuth();
     }, [socialLogin, location.state]);
 
-    // Show a loading indicator while processing the callback
     return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
             <LoadingIndicator size="large" text="Completing sign-in" />
@@ -97,7 +100,6 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     const { isAuthenticated, isLoading } = useAuthStore();
     const location = useLocation();
 
-    // If still loading, render the current route but with a subtle loading indicator
     if (isLoading) {
         return (
             <div className="opacity-50 pointer-events-none">
@@ -129,7 +131,6 @@ function App() {
         init();
     }, [initializeAuth]);
 
-    // Show a minimal loading indicator only during initial app load
     if (isInitializing) {
         return (
             <div className="min-h-screen bg-gray-50">
@@ -142,7 +143,6 @@ function App() {
 
     return (
         <Router>
-            {/* Add TokenRefreshManager to handle token refreshing globally */}
             <TokenRefreshManager />
 
             <Routes>
@@ -154,58 +154,126 @@ function App() {
                     <Route index element={<Home />} />
                     <Route path="login" element={<Login />} />
                     <Route path="register" element={<Register />} />
-                    <Route path="search" element={<Search />} />
-                    <Route path="album/:id" element={<Album />} />
-                    <Route path="track/:id" element={<Song />} />
-                    <Route path="artist/:id" element={<Artist />} />
+
+                    {/* Lazy-loaded routes with Suspense */}
+                    <Route
+                        path="search"
+                        element={
+                            <Suspense fallback={<RouteLoader />}>
+                                <Search />
+                            </Suspense>
+                        }
+                    />
+                    <Route
+                        path="album/:id"
+                        element={
+                            <Suspense fallback={<RouteLoader />}>
+                                <Album />
+                            </Suspense>
+                        }
+                    />
+                    <Route
+                        path="track/:id"
+                        element={
+                            <Suspense fallback={<RouteLoader />}>
+                                <Song />
+                            </Suspense>
+                        }
+                    />
+                    <Route
+                        path="artist/:id"
+                        element={
+                            <Suspense fallback={<RouteLoader />}>
+                                <Artist />
+                            </Suspense>
+                        }
+                    />
 
                     {/* Interaction detail page - publicly viewable */}
-                    <Route path="interaction/:id" element={<InteractionDetailPage />} />
+                    <Route
+                        path="interaction/:id"
+                        element={
+                            <Suspense fallback={<RouteLoader />}>
+                                <InteractionDetailPage />
+                            </Suspense>
+                        }
+                    />
 
                     {/* List detail page - publicly viewable */}
-                    <Route path="lists/:id" element={<ListDetailsPage />} />
+                    <Route
+                        path="lists/:id"
+                        element={
+                            <Suspense fallback={<RouteLoader />}>
+                                <ListDetailsPage />
+                            </Suspense>
+                        }
+                    />
 
                     {/* People Routes */}
-                    <Route path="people" element={<PeoplePage />} />
-                    <Route path="people/:id" element={<UserProfilePage />} />
+                    <Route
+                        path="people"
+                        element={
+                            <Suspense fallback={<RouteLoader />}>
+                                <PeoplePage />
+                            </Suspense>
+                        }
+                    />
+                    <Route
+                        path="people/:id"
+                        element={
+                            <Suspense fallback={<RouteLoader />}>
+                                <UserProfilePage />
+                            </Suspense>
+                        }
+                    />
 
                     {/* Protected routes */}
                     <Route
                         path="profile"
                         element={
                             <ProtectedRoute>
-                                <Profile />
+                                <Suspense fallback={<RouteLoader />}>
+                                    <Profile />
+                                </Suspense>
                             </ProtectedRoute>
                         }
                     />
-                    {/* Diary route */}
                     <Route
                         path="diary"
                         element={
                             <ProtectedRoute>
-                                <Diary />
+                                <Suspense fallback={<RouteLoader />}>
+                                    <Diary />
+                                </Suspense>
                             </ProtectedRoute>
                         }
                     />
-                    {/* Grading method routes */}
                     <Route
                         path="grading-methods/create"
                         element={
                             <ProtectedRoute>
-                                <CreateGradingMethod />
+                                <Suspense fallback={<RouteLoader />}>
+                                    <CreateGradingMethod />
+                                </Suspense>
                             </ProtectedRoute>
                         }
                     />
                     <Route
                         path="grading-methods/:id"
-                        element={<ViewGradingMethod />}
+                        element={
+                            <Suspense fallback={<RouteLoader />}>
+                                <ViewGradingMethod />
+                            </Suspense>
+                        }
                     />
 
                     <Route
                         path="create-interaction/:itemType/:itemId"
                         element={
                             <ProtectedRoute>
-                                <CreateInteractionPage />
+                                <Suspense fallback={<RouteLoader />}>
+                                    <CreateInteractionPage />
+                                </Suspense>
                             </ProtectedRoute>
                         }
                     />
@@ -214,7 +282,9 @@ function App() {
                         path="following-feed"
                         element={
                             <ProtectedRoute>
-                                <FollowingFeed />
+                                <Suspense fallback={<RouteLoader />}>
+                                    <FollowingFeed />
+                                </Suspense>
                             </ProtectedRoute>
                         }
                     />
@@ -223,17 +293,20 @@ function App() {
                         path="lists"
                         element={
                             <ProtectedRoute>
-                                <Lists />
+                                <Suspense fallback={<RouteLoader />}>
+                                    <Lists />
+                                </Suspense>
                             </ProtectedRoute>
                         }
                     />
 
-                    {/* New List Edit Route */}
                     <Route
                         path="lists/edit/:id"
                         element={
                             <ProtectedRoute>
-                                <ListEditPage />
+                                <Suspense fallback={<RouteLoader />}>
+                                    <ListEditPage />
+                                </Suspense>
                             </ProtectedRoute>
                         }
                     />
