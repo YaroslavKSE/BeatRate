@@ -186,7 +186,7 @@ resource "aws_lb_target_group" "music_catalog_service" {
   )
 }
 
-resource "aws_lb_target_group" "rating_service" {
+resource "aws_lb_target_group" "music_interaction_service" {
   name        = "${var.environment}-rating-service-tg"
   port        = 80
   protocol    = "HTTP"
@@ -252,9 +252,9 @@ resource "aws_lb_listener_rule" "user_service" {
   condition {
     path_pattern {
       values = [
-        "/api/v1/auth/*",
-        "/api/v1/users/*",
-        "/api/v1/public/users/*"
+        "/api/v1/auth*",
+        "/api/v1/users*",
+        "/api/v1/public/users*"
       ]
     }
   }
@@ -273,7 +273,7 @@ resource "aws_lb_listener_rule" "music_catalog_service" {
   condition {
     path_pattern {
       values = [
-        "/api/v1/catalog/*"
+        "/api/v1/catalog*"
       ]
     }
   }
@@ -286,15 +286,15 @@ resource "aws_lb_listener_rule" "music_interaction_service" {
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.rating_service.arn
+    target_group_arn = aws_lb_target_group.music_interaction_service.arn
   }
 
   condition {
     path_pattern {
       values = [
-        "/api/v1/interactions/*",
-        "/api/v1/review-interactions/*",
-        "/api/v1/grading-methods/*"
+        "/api/v1/interactions*",
+        "/api/v1/review-interactions*",
+        "/api/v1/grading-methods*"
       ]
     }
   }
@@ -313,7 +313,7 @@ resource "aws_lb_listener_rule" "music_lists_service" {
   condition {
     path_pattern {
       values = [
-        "/api/v1/music-lists/*"
+        "/api/v1/music-lists*"
       ]
     }
   }

@@ -12,6 +12,22 @@ resource "aws_security_group" "redis_sg" {
     description     = "Allow Redis traffic from specified security groups"
   }
 
+  ingress {
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = [var.private_subnet_cidr_a]
+    description = "Allow Redis traffic from private subnet A"
+  }
+
+  ingress {
+    from_port   = 6379
+    to_port     = 6379
+    protocol    = "tcp"
+    cidr_blocks = [var.private_subnet_cidr_b]
+    description = "Allow Redi traffic from private subnet B"
+  }
+
   # No direct outbound access needed for Redis
   egress {
     from_port   = 0
@@ -106,7 +122,8 @@ resource "aws_ssm_parameter" "redis_connection_string" {
   name        = "/${var.environment}/redis/connection_string"
   description = "The connection string for the Redis ElastiCache instance"
   type        = "String"
-  value       = "redis://${aws_elasticache_cluster.redis.cache_nodes[0].address}:${aws_elasticache_cluster.redis.cache_nodes[0].port}"
+  # Use simple hostname:port format for StackExchange.Redis
+  value       = "${aws_elasticache_cluster.redis.cache_nodes[0].address}:${aws_elasticache_cluster.redis.cache_nodes[0].port}"
 
   tags = var.common_tags
 }

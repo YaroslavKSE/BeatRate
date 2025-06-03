@@ -107,3 +107,13 @@ variable "mongo_atlas_project_id" {
   type        = string
   default     = null
 }
+
+variable "private_subnet_cidr_a" {
+  description = "CIDR block for private subnet A"
+  type        = string
+}
+
+variable "private_subnet_cidr_b" {
+  description = "CIDR block for private subnet B"
+  type        = string
+}

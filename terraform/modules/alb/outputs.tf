@@ -30,7 +30,7 @@ output "music_catalog_target_group_arn" {
 
 output "rating_service_target_group_arn" {
   description = "The ARN of the rating service target group"
-  value       = aws_lb_target_group.rating_service.arn
+  value       = aws_lb_target_group.music_interaction_service.arn
 }
 
 output "https_listener_arn" {

@@ -111,7 +111,7 @@ resource "aws_ssm_parameter" "connection_string" {
   name        = "/${var.environment}/mongodb/${var.db_name}/connection_string"
   description = "The connection string for MongoDB Atlas"
   type        = "SecureString"
-  value       = "mongodb+srv://${var.db_username}:${random_password.db_password.result}@${mongodbatlas_advanced_cluster.main.connection_strings[0].standard}"
+  value       = "mongodb+srv://${var.db_username}:${random_password.db_password.result}@${replace(mongodbatlas_advanced_cluster.main.connection_strings[0].standard_srv, "mongodb+srv://", "")}"
 
   tags = var.common_tags
 }

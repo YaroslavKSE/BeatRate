@@ -157,6 +157,9 @@ module "redis" {
   subnet_ids                 = module.vpc.private_subnet_ids
   allowed_security_group_ids = [module.alb.ecs_tasks_security_group_id]
 
+  private_subnet_cidr_a = local.config.private_subnet_cidr_a
+  private_subnet_cidr_b = local.config.private_subnet_cidr_b
+
   # Redis settings
   node_type     = local.environment == "prod" ? "cache.t3.small" : "cache.t3.micro" # Near free tier
   redis_version = "6.2"
@@ -175,6 +178,9 @@ module "mongodb" {
 
   environment  = local.environment
   project_name = var.project_name
+
+  private_subnet_cidr_a = local.config.private_subnet_cidr_a
+  private_subnet_cidr_b = local.config.private_subnet_cidr_b
 
   # MongoDB Atlas credentials
   mongo_atlas_project_id = var.mongo_atlas_project_id
@@ -279,7 +285,7 @@ module "ecs" {
   mongodb_connection_string_parameter = "/${local.environment}/mongodb/${var.mongodb_database_name}/connection_string"
 
   # Redis configuration
-  redis_connection_string_parameter = "/${local.environment}/redis/endpoint"
+  redis_connection_string_parameter = "/${local.environment}/redis/connection_string"
 
   # Service configurations
   user_service_config = {

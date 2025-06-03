@@ -53,3 +53,13 @@ variable "common_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "private_subnet_cidr_a" {
+  description = "CIDR block for private subnet A"
+  type        = string
+}
+
+variable "private_subnet_cidr_b" {
+  description = "CIDR block for private subnet B"
+  type        = string
+}
