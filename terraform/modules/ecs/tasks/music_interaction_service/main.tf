@@ -15,9 +15,11 @@ resource "aws_ecs_task_definition" "music_interaction_service" {
 
       portMappings = [
         {
+          name          = "http"
           containerPort = 80
           hostPort      = 80
           protocol      = "tcp"
+          appProtocol   = "http"
         }
       ]
 
@@ -26,6 +28,8 @@ resource "aws_ecs_task_definition" "music_interaction_service" {
         { name = "ASPNETCORE_ENVIRONMENT", value = var.environment == "prod" ? "Production" : "Development" },
         # CORS configuration
         { name = "Cors__AllowedOrigins__0", value = var.environment == "prod" ? "https://${var.domain_name}" : "https://dev.${var.domain_name}" },
+        # User Service URL for inter-service communication
+        { name = "Services__UserService__BaseUrl", value = "http://user-service" }
       ]
 
       # Access connection strings from parameter store
@@ -33,7 +37,9 @@ resource "aws_ecs_task_definition" "music_interaction_service" {
         # Full connection string for PostgreSQL
         { name = "ConnectionStrings__PostgreSQL", valueFrom = var.postgres_connection_string_parameter },
         # MongoDB connection string
-        { name = "MongoDB__ConnectionString", valueFrom = var.mongodb_connection_string_parameter }
+        { name = "MongoDB__ConnectionString", valueFrom = var.mongodb_connection_string_parameter },
+        { name = "Auth0__Domain", valueFrom = var.auth0_domain },
+        { name = "Auth0__Audience", valueFrom = var.auth0_audience }
       ]
 
       logConfiguration = {

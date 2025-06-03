@@ -54,3 +54,16 @@ variable "mongodb_connection_string_parameter" {
   description = "SSM Parameter path for MongoDB connection string"
   type        = string
 }
+
+# Auth0 variables
+variable "auth0_domain" {
+  description = "Auth0 Domain parameter ARN in SSM"
+  type        = string
+  sensitive   = true
+}
+
+variable "auth0_audience" {
+  description = "Auth0 Audience parameter ARN in SSM"
+  type        = string
+  sensitive   = true
+}

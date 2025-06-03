@@ -29,7 +29,8 @@ resource "null_resource" "build_frontend" {
   }
 
   provisioner "local-exec" {
-    command     = "cd ${var.frontend_project_path} && npm run build"
+    # Use environment-specific build command
+    command     = "cd ${var.frontend_project_path} && npm run build:${var.environment == "prod" ? "prod" : "staging"}"
     working_dir = var.frontend_project_path
   }
 }

@@ -1,9 +1,27 @@
+# Create Cloud Map namespace for Service Connect
+resource "aws_service_discovery_private_dns_namespace" "main" {
+  name = "${var.environment}-${var.name}"
+  vpc  = var.vpc_id
+
+  tags = merge(
+    var.common_tags,
+    {
+      Name = "${var.environment}-${var.name}-namespace"
+    }
+  )
+}
+
 resource "aws_ecs_cluster" "main" {
   name = "${var.environment}-${var.name}-cluster"
 
   setting {
     name  = "containerInsights"
     value = "enabled"
+  }
+
+  # Add Service Connect configuration
+  service_connect_defaults {
+    namespace = aws_service_discovery_private_dns_namespace.main.arn
   }
 
   tags = merge(
@@ -306,6 +324,10 @@ module "music_interaction_service" {
   # Connection string parameters
   postgres_connection_string_parameter = var.postgres_connection_string_parameter
   mongodb_connection_string_parameter  = var.mongodb_connection_string_parameter
+
+  # Pass Auth0 credentials directly
+  auth0_domain                  = var.auth0_domain
+  auth0_audience                = var.auth0_audience
 }
 
 module "music_lists_service" {
@@ -355,6 +377,21 @@ resource "aws_ecs_service" "user_service" {
     container_port   = 80
   }
 
+  # Add Service Connect configuration
+  service_connect_configuration {
+    enabled   = true
+    namespace = aws_service_discovery_private_dns_namespace.main.arn
+
+    service {
+      client_alias {
+        port     = 80
+        dns_name = "user-service"
+      }
+      discovery_name = "user-service"
+      port_name      = "http"
+    }
+  }
+
   lifecycle {
     ignore_changes = [desired_count]
   }
@@ -388,6 +425,11 @@ resource "aws_ecs_service" "music_catalog_service" {
     target_group_arn = var.music_catalog_service_target_group_arn
     container_name   = "music-catalog-service"
     container_port   = 80
+  }
+
+  # Add Service Connect configuration
+  service_connect_configuration {
+    enabled = true
   }
 
   lifecycle {
@@ -425,6 +467,11 @@ resource "aws_ecs_service" "music_interaction_service" {
     container_port   = 80
   }
 
+  # Add Service Connect configuration - this service needs to call user-service
+  service_connect_configuration {
+    enabled = true
+  }
+
   lifecycle {
     ignore_changes = [desired_count]
   }
@@ -458,6 +505,11 @@ resource "aws_ecs_service" "music_lists_service" {
     target_group_arn = var.music_lists_service_target_group_arn
     container_name   = "music-lists-service"
     container_port   = 80
+  }
+
+  # Add Service Connect configuration
+  service_connect_configuration {
+    enabled = true
   }
 
   lifecycle {

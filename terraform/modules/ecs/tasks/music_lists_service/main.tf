@@ -15,9 +15,11 @@ resource "aws_ecs_task_definition" "music_lists_service" {
 
       portMappings = [
         {
+          name          = "http"
           containerPort = 80
           hostPort      = 80
           protocol      = "tcp"
+          appProtocol   = "http"
         }
       ]
 

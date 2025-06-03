@@ -15,9 +15,11 @@ resource "aws_ecs_task_definition" "user_service" {
 
       portMappings = [
         {
+          name          = "http"
           containerPort = 80
           hostPort      = 80
           protocol      = "tcp"
+          appProtocol   = "http"
         }
       ]
 

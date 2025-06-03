@@ -67,3 +67,18 @@ output "music_lists_service_name" {
   description = "The name of the Music Lists Service"
   value       = aws_ecs_service.music_lists_service.name
 }
+
+output "service_discovery_namespace_id" {
+  description = "The ID of the Service Discovery namespace"
+  value       = aws_service_discovery_private_dns_namespace.main.id
+}
+
+output "service_discovery_namespace_arn" {
+  description = "The ARN of the Service Discovery namespace"
+  value       = aws_service_discovery_private_dns_namespace.main.arn
+}
+
+output "service_discovery_namespace_name" {
+  description = "The name of the Service Discovery namespace"
+  value       = aws_service_discovery_private_dns_namespace.main.name
+}
