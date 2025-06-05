@@ -161,7 +161,7 @@ variable "mongodb_database_name" {
   description = "Name of the MongoDB database"
   type        = string
   sensitive   = true
-  default     = "musicapp"
+  default     = "MusicCatalog"
 }
 
 variable "mongodb_username" {

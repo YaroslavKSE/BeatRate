@@ -123,7 +123,7 @@ resource "aws_ssm_parameter" "redis_connection_string" {
   description = "The connection string for the Redis ElastiCache instance"
   type        = "String"
   # Use simple hostname:port format for StackExchange.Redis
-  value       = "${aws_elasticache_cluster.redis.cache_nodes[0].address}:${aws_elasticache_cluster.redis.cache_nodes[0].port}"
+  value = "${aws_elasticache_cluster.redis.cache_nodes[0].address}:${aws_elasticache_cluster.redis.cache_nodes[0].port}"
 
   tags = var.common_tags
 }

@@ -326,8 +326,8 @@ module "music_interaction_service" {
   mongodb_connection_string_parameter  = var.mongodb_connection_string_parameter
 
   # Pass Auth0 credentials directly
-  auth0_domain                  = var.auth0_domain
-  auth0_audience                = var.auth0_audience
+  auth0_domain   = var.auth0_domain
+  auth0_audience = var.auth0_audience
 }
 
 module "music_lists_service" {

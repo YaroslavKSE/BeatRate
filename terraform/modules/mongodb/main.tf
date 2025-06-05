@@ -1,3 +1,5 @@
+# terraform/modules/mongodb/main.tf
+
 terraform {
   required_providers {
     mongodbatlas = {
@@ -6,12 +8,6 @@ terraform {
     }
   }
 }
-
-# Create a MongoDB Atlas Project
-# resource "mongodbatlas_project" "main" {
-#   name   = "${var.environment}-${var.project_name}"
-#   org_id = var.atlas_org_id
-# }
 
 # Create a MongoDB Atlas Cluster
 resource "mongodbatlas_advanced_cluster" "main" {
@@ -22,8 +18,6 @@ resource "mongodbatlas_advanced_cluster" "main" {
   mongo_db_major_version = "8.0"
 
   replication_specs {
-    #    num_shards = 1
-
     region_configs {
       provider_name = "AWS"
       region_name   = var.atlas_region
@@ -55,12 +49,7 @@ resource "mongodbatlas_advanced_cluster" "main" {
     no_table_scan                        = false
     sample_refresh_interval_bi_connector = 300
   }
-
-  # termination_protection_enabled = var.environment == "prod" ? true : false
-  # disk_size_gb                   = var.disk_size_gb
 }
-
-
 
 # Create a MongoDB Atlas database user
 resource "mongodbatlas_database_user" "main" {
@@ -79,21 +68,17 @@ resource "mongodbatlas_database_user" "main" {
     database_name = var.db_name
   }
 
-  # For monitoring
   scopes {
     name = mongodbatlas_advanced_cluster.main.name
     type = "CLUSTER"
   }
 }
 
-# Generate a random password for the database user without problematic special characters
+# Generate a random password for the database user
 resource "random_password" "db_password" {
-  length  = 16
-  special = true
-  # Use a limited set of special characters that don't need URL encoding in connection strings
+  length           = 16
+  special          = true
   override_special = "-_."
-  # Alternatively, you can disable special characters completely:
-  # special          = false
 }
 
 # Store the password in SSM Parameter Store
@@ -102,16 +87,6 @@ resource "aws_ssm_parameter" "db_password" {
   description = "The password for MongoDB Atlas database user"
   type        = "SecureString"
   value       = random_password.db_password.result
-
-  tags = var.common_tags
-}
-
-# Store connection string in SSM Parameter Store
-resource "aws_ssm_parameter" "connection_string" {
-  name        = "/${var.environment}/mongodb/${var.db_name}/connection_string"
-  description = "The connection string for MongoDB Atlas"
-  type        = "SecureString"
-  value       = "mongodb+srv://${var.db_username}:${random_password.db_password.result}@${replace(mongodbatlas_advanced_cluster.main.connection_strings[0].standard_srv, "mongodb+srv://", "")}"
 
   tags = var.common_tags
 }
@@ -135,11 +110,11 @@ resource "aws_security_group" "mongodb_endpoint" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = 27017
-    to_port     = 27017
+    from_port   = 1024
+    to_port     = 65535
     protocol    = "tcp"
     cidr_blocks = [data.aws_vpc.selected.cidr_block]
-    description = "Allow MongoDB traffic from VPC"
+    description = "Allow MongoDB traffic from VPC on all high ports"
   }
 
   egress {
@@ -165,7 +140,7 @@ resource "aws_vpc_endpoint" "mongodb" {
   vpc_endpoint_type   = "Interface"
   subnet_ids          = var.private_subnet_ids
   security_group_ids  = [aws_security_group.mongodb_endpoint.id]
-  private_dns_enabled = false # Changed from true to false
+  private_dns_enabled = false
 
   tags = merge(
     var.common_tags,
@@ -188,4 +163,50 @@ resource "mongodbatlas_project_ip_access_list" "main" {
   project_id = var.mongo_atlas_project_id
   cidr_block = data.aws_vpc.selected.cidr_block
   comment    = "CIDR block for ${var.environment} VPC"
+}
+
+# Store the PRIVATE connection string instead of public
+resource "aws_ssm_parameter" "connection_string" {
+  name        = "/${var.environment}/mongodb/${var.db_name}/connection_string"
+  description = "The PRIVATE connection string for MongoDB Atlas via PrivateLink"
+  type        = "SecureString"
+  value = try(
+    "mongodb+srv://${var.db_username}:${random_password.db_password.result}@${replace(mongodbatlas_advanced_cluster.main.connection_strings[0].private_endpoint[0].srv_connection_string, "mongodb+srv://", "")}"
+  )
+
+  tags = var.common_tags
+
+  # Make sure this runs after the PrivateLink is fully configured
+  depends_on = [
+    mongodbatlas_privatelink_endpoint_service.main,
+    aws_vpc_endpoint.mongodb
+  ]
+}
+
+# Store both connection strings for debugging/flexibility
+resource "aws_ssm_parameter" "connection_string_public" {
+  name        = "/${var.environment}/mongodb/${var.db_name}/connection_string_public"
+  description = "The PUBLIC connection string for MongoDB Atlas (for debugging)"
+  type        = "SecureString"
+  value       = "mongodb+srv://${var.db_username}:${random_password.db_password.result}@${replace(mongodbatlas_advanced_cluster.main.connection_strings[0].standard_srv, "mongodb+srv://", "")}"
+
+  tags = var.common_tags
+}
+
+resource "aws_ssm_parameter" "connection_string_private" {
+  name        = "/${var.environment}/mongodb/${var.db_name}/connection_string_private"
+  description = "The PRIVATE connection string for MongoDB Atlas via PrivateLink"
+  type        = "SecureString"
+  value = try(
+    mongodbatlas_advanced_cluster.main.connection_strings[0].private_endpoint[0].srv_connection_string,
+    # Fallback to manually constructed private connection if the above doesn't work
+    "mongodb+srv://${var.db_username}:${random_password.db_password.result}@${mongodbatlas_privatelink_endpoint.main.private_link_id}.${var.atlas_region}.vpce.amazonaws.com"
+  )
+
+  tags = var.common_tags
+
+  depends_on = [
+    mongodbatlas_privatelink_endpoint_service.main,
+    aws_vpc_endpoint.mongodb
+  ]
 }
