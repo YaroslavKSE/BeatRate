@@ -55,6 +55,11 @@ variable "mongodb_connection_string_parameter" {
   type        = string
 }
 
+variable "mongodb_database_name" {
+  description = "MongoDb database name"
+  type        = string
+}
+
 # Auth0 variables
 variable "auth0_domain" {
   description = "Auth0 Domain parameter ARN in SSM"

@@ -52,6 +52,11 @@ variable "log_retention_days" {
   default     = 30
 }
 
+variable "mongodb_database_name" {
+  description = "MongoDb database name"
+  type        = string
+}
+
 variable "user_service_config" {
   description = "Configuration for the User Service"
   type = object({

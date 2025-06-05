@@ -283,6 +283,7 @@ module "ecs" {
 
   # MongoDB configuration
   mongodb_connection_string_parameter = "/${local.environment}/mongodb/${var.mongodb_database_name}/connection_string"
+  mongodb_database_name = var.mongodb_database_name
 
   # Redis configuration
   redis_connection_string_parameter = "/${local.environment}/redis/connection_string"
@@ -310,14 +311,15 @@ module "ecs" {
   }
 
   music_interaction_service_config = {
-    ecr_repository_url = var.music_interaction_service_repository_url
-    image_tag          = var.music_interaction_service_image_tag
-    cpu                = var.music_interaction_service_cpu
-    memory             = var.music_interaction_service_memory
-    desired_count      = var.music_interaction_service_desired_count
-    min_capacity       = var.music_interaction_service_min_capacity
-    max_capacity       = var.music_interaction_service_max_capacity
-    db_name            = var.music_interaction_db_name
+    ecr_repository_url    = var.music_interaction_service_repository_url
+    image_tag             = var.music_interaction_service_image_tag
+    cpu                   = var.music_interaction_service_cpu
+    memory                = var.music_interaction_service_memory
+    desired_count         = var.music_interaction_service_desired_count
+    min_capacity          = var.music_interaction_service_min_capacity
+    max_capacity          = var.music_interaction_service_max_capacity
+    db_name               = var.music_interaction_db_name
+    mongodb_database_name = var.mongodb_database_name
   }
 
   music_lists_service_config = {

@@ -119,8 +119,6 @@ resource "aws_cloudfront_distribution" "frontend" {
   )
 }
 
-
-
 # Create an invalidation resource to clear cache after deployment
 # resource "null_resource" "frontend_invalidation" {
 #   triggers = {

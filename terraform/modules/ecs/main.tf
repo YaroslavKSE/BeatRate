@@ -325,9 +325,12 @@ module "music_interaction_service" {
   postgres_connection_string_parameter = var.postgres_connection_string_parameter
   mongodb_connection_string_parameter  = var.mongodb_connection_string_parameter
 
+  mongodb_database_name = var.mongodb_database_name
+
   # Pass Auth0 credentials directly
   auth0_domain   = var.auth0_domain
   auth0_audience = var.auth0_audience
+
 }
 
 module "music_lists_service" {

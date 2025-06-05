@@ -29,7 +29,8 @@ resource "aws_ecs_task_definition" "music_interaction_service" {
         # CORS configuration
         { name = "Cors__AllowedOrigins__0", value = var.environment == "prod" ? "https://${var.domain_name}" : "https://dev.${var.domain_name}" },
         # User Service URL for inter-service communication
-        { name = "Services__UserService__BaseUrl", value = "http://user-service" }
+        { name = "Services__UserService__BaseUrl", value = "http://user-service" },
+        { name = "MongoDB__DatabaseName", value = var.mongodb_database_name }
       ]
 
       # Access connection strings from parameter store
