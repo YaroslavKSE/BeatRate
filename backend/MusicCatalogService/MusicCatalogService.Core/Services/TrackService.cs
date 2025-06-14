@@ -5,6 +5,7 @@ using MusicCatalogService.Core.Interfaces;
 using MusicCatalogService.Core.Mappers;
 using MusicCatalogService.Core.Models;
 using MusicCatalogService.Core.Models.Spotify;
+using MusicCatalogService.Core.Spotify;
 
 namespace MusicCatalogService.Core.Services;
 
@@ -13,6 +14,7 @@ public class TrackService : ITrackService
     private readonly ISpotifyApiClient _spotifyApiClient;
     private readonly ICatalogRepository _catalogRepository;
     private readonly ICacheService _cacheService;
+    private readonly ISpotifyPreviewExtractor _previewExtractor;
     private readonly ILogger<TrackService> _logger;
     private readonly SpotifySettings _spotifySettings;
 
@@ -20,12 +22,14 @@ public class TrackService : ITrackService
         ISpotifyApiClient spotifyApiClient,
         ICatalogRepository catalogRepository,
         ICacheService cacheService,
+        ISpotifyPreviewExtractor previewExtractor,
         ILogger<TrackService> logger,
         IOptions<SpotifySettings> spotifySettings)
     {
         _spotifyApiClient = spotifyApiClient;
         _catalogRepository = catalogRepository;
         _cacheService = cacheService;
+        _previewExtractor = previewExtractor;
         _logger = logger;
         _spotifySettings = spotifySettings.Value;
     }
@@ -102,15 +106,43 @@ public class TrackService : ITrackService
             return null;
         }
 
+        // Extract preview URL (Spotify API rarely provides preview URLs, so extract directly)
+        string extractedPreviewUrl = null;
+        _logger.LogInformation("Extracting preview URL for track {SpotifyId}", spotifyId);
+        try
+        {
+            extractedPreviewUrl = await _previewExtractor.GetTrackPreviewUrlAsync(spotifyId);
+            if (!string.IsNullOrEmpty(extractedPreviewUrl))
+            {
+                _logger.LogInformation("Successfully extracted preview URL for track {SpotifyId}", spotifyId);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to extract preview URL for track {SpotifyId}", spotifyId);
+        }
+
         // Create or update track entity
         var trackEntity = TrackMapper.MapToTrackEntity(spotifyTrack, track);
         trackEntity.CacheExpiresAt = DateTime.UtcNow.AddMinutes(_spotifySettings.CacheExpirationMinutes);
+        
+        // Use extracted preview URL (prefer extracted over Spotify API since API rarely provides them)
+        if (!string.IsNullOrEmpty(extractedPreviewUrl))
+        {
+            trackEntity.PreviewUrl = extractedPreviewUrl;
+        }
 
         // Save to database as a cached item (not permanent)
         await _catalogRepository.AddOrUpdateTrackAsync(trackEntity);
 
         // Map to DTO
         var result = TrackMapper.MapToTrackDetailDto(spotifyTrack, trackEntity.Id);
+        
+        // Ensure extracted preview URL is included in the result (prefer extracted over Spotify API)
+        if (!string.IsNullOrEmpty(extractedPreviewUrl))
+        {
+            result.PreviewUrl = extractedPreviewUrl;
+        }
 
         // Cache the result
         await _cacheService.SetAsync(
@@ -231,7 +263,9 @@ public class TrackService : ITrackService
                     continue;
                 }
 
-                // Process each track from Spotify
+                // Process each track from Spotify and extract preview URLs if needed
+                var tracksToProcess = new List<(SpotifyTrackResponse SpotifyTrack, Track ExistingTrack)>();
+                
                 foreach (var spotifyTrack in spotifyResponse.Tracks)
                 {
                     if (spotifyTrack == null) continue;
@@ -240,9 +274,33 @@ public class TrackService : ITrackService
                     Track existingTrack = null;
                     existingDbTracks.TryGetValue(spotifyTrack.Id, out existingTrack);
                     
+                    tracksToProcess.Add((spotifyTrack, existingTrack));
+                }
+
+                // Extract preview URLs for tracks that need them (in parallel for better performance)
+                var previewTasks = tracksToProcess
+                    .Select(async t =>
+                    {
+                        var previewUrl = await _previewExtractor.GetTrackPreviewUrlAsync(t.SpotifyTrack.Id);
+                        return (t.SpotifyTrack.Id, previewUrl);
+                    });
+
+                var previewResults = await Task.WhenAll(previewTasks);
+                var previewUrlMap = previewResults.ToDictionary(r => r.Id, r => r.previewUrl);
+
+                // Process each track
+                foreach (var (spotifyTrack, existingTrack) in tracksToProcess)
+                {
                     // Create or update track entity
                     var trackEntity = TrackMapper.MapToTrackEntity(spotifyTrack, existingTrack);
                     trackEntity.CacheExpiresAt = DateTime.UtcNow.AddMinutes(_spotifySettings.CacheExpirationMinutes);
+
+                    // Use extracted preview URL (prefer extracted over Spotify API)
+                    if (previewUrlMap.TryGetValue(spotifyTrack.Id, out var extractedUrl) && 
+                        !string.IsNullOrEmpty(extractedUrl))
+                    {
+                        trackEntity.PreviewUrl = extractedUrl;
+                    }
 
                     // Save to database
                     await _catalogRepository.AddOrUpdateTrackAsync(trackEntity);

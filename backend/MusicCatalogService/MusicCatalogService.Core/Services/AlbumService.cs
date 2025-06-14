@@ -13,6 +13,7 @@ public class AlbumService : IAlbumService
     private readonly ISpotifyApiClient _spotifyApiClient;
     private readonly ICatalogRepository _catalogRepository;
     private readonly ICacheService _cacheService;
+    private readonly ISpotifyPreviewExtractor _previewExtractor;
     private readonly ILogger<AlbumService> _logger;
     private readonly SpotifySettings _spotifySettings;
 
@@ -20,12 +21,14 @@ public class AlbumService : IAlbumService
         ISpotifyApiClient spotifyApiClient,
         ICatalogRepository catalogRepository,
         ICacheService cacheService,
+        ISpotifyPreviewExtractor previewExtractor,
         ILogger<AlbumService> logger,
         IOptions<SpotifySettings> spotifySettings)
     {
         _spotifyApiClient = spotifyApiClient;
         _catalogRepository = catalogRepository;
         _cacheService = cacheService;
+        _previewExtractor = previewExtractor;
         _logger = logger;
         _spotifySettings = spotifySettings.Value;
     }
@@ -103,6 +106,21 @@ public class AlbumService : IAlbumService
             return null;
         }
 
+        // Extract preview URLs for album tracks
+        List<string> extractedPreviewUrls = null;
+        try
+        {
+            _logger.LogInformation("Extracting preview URLs for album {SpotifyId} tracks", spotifyId);
+            extractedPreviewUrls = await _previewExtractor.GetAlbumPreviewUrlsAsync(spotifyId);
+            _logger.LogInformation("Successfully extracted {Count} preview URLs for album {SpotifyId}", 
+                extractedPreviewUrls?.Count ?? 0, spotifyId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to extract preview URLs for album {SpotifyId}", spotifyId);
+            extractedPreviewUrls = new List<string>();
+        }
+
         // Create or update album entity
         var albumEntity = AlbumMapper.MapToAlbumEntity(spotifyAlbum, album);
         albumEntity.CacheExpiresAt = DateTime.UtcNow.AddMinutes(_spotifySettings.CacheExpirationMinutes);
@@ -112,6 +130,17 @@ public class AlbumService : IAlbumService
 
         // Map to DTO directly from Spotify response and entity
         var result = AlbumMapper.MapToAlbumDetailDto(spotifyAlbum, albumEntity.Id);
+
+        // If we have tracks in the result and preview URLs, match them up
+        if (result.Tracks != null && result.Tracks.Any() && extractedPreviewUrls != null && extractedPreviewUrls.Any())
+        {
+            // Match preview URLs to tracks by index (assuming same order)
+            for (int i = 0; i < Math.Min(result.Tracks.Count, extractedPreviewUrls.Count); i++)
+            {
+                // Note: TrackSummaryDto doesn't have PreviewUrl property, 
+                // so we'll store this information when we save individual tracks
+            }
+        }
 
         // Cache the result
         await _cacheService.SetAsync(
@@ -251,10 +280,83 @@ public class AlbumService : IAlbumService
                 };
             }
 
+            // Extract preview URLs for the tracks in this page (Spotify API rarely provides them)
+            List<string> extractedPreviewUrls = null;
+            if (tracksResponse.Items != null && tracksResponse.Items.Any())
+            {
+                try
+                {
+                    _logger.LogInformation("Extracting preview URLs for {Count} tracks from album {SpotifyId}", 
+                        tracksResponse.Items.Count, spotifyId);
+                    
+                    // Get all album preview URLs (this gives us all tracks, not just the current page)
+                    var allPreviewUrls = await _previewExtractor.GetAlbumPreviewUrlsAsync(spotifyId);
+                    
+                    // Extract only the preview URLs for the current page
+                    if (allPreviewUrls != null && allPreviewUrls.Any())
+                    {
+                        extractedPreviewUrls = allPreviewUrls
+                            .Skip(offset)
+                            .Take(limit)
+                            .ToList();
+                            
+                        _logger.LogInformation("Successfully extracted {Count} preview URLs for current page of album {SpotifyId}", 
+                            extractedPreviewUrls.Count, spotifyId);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to extract preview URLs for album {SpotifyId} tracks", spotifyId);
+                    extractedPreviewUrls = new List<string>();
+                }
+            }
+
             // Map the response to our DTO
             var mappedResult = AlbumMapper.MapToAlbumTracksResultDto(tracksResponse, spotifyId, albumName, limit, offset);
 
-            // Update album entity with track IDs if needed
+            // Update the track summaries with extracted preview URLs
+            if (extractedPreviewUrls != null && extractedPreviewUrls.Any())
+            {
+                for (int i = 0; i < Math.Min(mappedResult.Tracks.Count, extractedPreviewUrls.Count); i++)
+                {
+                    if (!string.IsNullOrEmpty(extractedPreviewUrls[i]))
+                    {
+                        mappedResult.Tracks[i].PreviewUrl = extractedPreviewUrls[i];
+                    }
+                }
+            }
+
+            // Update individual tracks in database with preview URLs if we have them
+            if (tracksResponse.Items != null && extractedPreviewUrls != null && extractedPreviewUrls.Any())
+            {
+                var trackUpdateTasks = new List<Task>();
+                
+                for (int i = 0; i < Math.Min(tracksResponse.Items.Count, extractedPreviewUrls.Count); i++)
+                {
+                    var trackItem = tracksResponse.Items[i];
+                    var previewUrl = extractedPreviewUrls[i];
+                    
+                    if (!string.IsNullOrEmpty(previewUrl))
+                    {
+                        // Update the track in database with preview URL
+                        var updateTask = UpdateTrackWithPreviewUrlAsync(trackItem.Id, previewUrl);
+                        trackUpdateTasks.Add(updateTask);
+                    }
+                }
+                
+                // Execute all track updates in parallel (fire and forget)
+                _ = Task.WhenAll(trackUpdateTasks).ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        _logger.LogWarning(t.Exception, "Some track preview URL updates failed for album {SpotifyId}", spotifyId);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Successfully updated preview URLs for tracks in album {SpotifyId}", spotifyId);
+                    }
+                });
+            }            // Update album entity with track IDs if needed
             if (album != null && tracksResponse.Items != null && tracksResponse.Items.Any())
             {
                 // Get the track IDs from the response
@@ -334,6 +436,23 @@ public class AlbumService : IAlbumService
         {
             _logger.LogError(ex, "Error retrieving tracks for album {SpotifyId}", spotifyId);
             throw;
+        }
+    }
+
+    private async Task UpdateTrackWithPreviewUrlAsync(string trackId, string previewUrl)
+    {
+        try
+        {
+            var existingTrack = await _catalogRepository.GetTrackBySpotifyIdAsync(trackId);
+            if (existingTrack != null && string.IsNullOrEmpty(existingTrack.PreviewUrl))
+            {
+                existingTrack.PreviewUrl = previewUrl;
+                await _catalogRepository.AddOrUpdateTrackAsync(existingTrack);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update track {TrackId} with preview URL", trackId);
         }
     }
 

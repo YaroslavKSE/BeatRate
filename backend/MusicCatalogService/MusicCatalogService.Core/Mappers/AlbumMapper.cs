@@ -106,6 +106,7 @@ public static class AlbumMapper
                 DurationMs = track.DurationMs,
                 IsExplicit = track.Explicit,
                 TrackNumber = track.TrackNumber,
+                PreviewUrl = null, // Will be populated by service layer
                 ExternalUrls = track.ExternalUrls?.Spotify != null
                     ? new List<string> {track.ExternalUrls.Spotify}
                     : null
@@ -189,6 +190,7 @@ public static class AlbumMapper
                 IsExplicit = track.Explicit,
                 TrackNumber = track.TrackNumber,
                 AlbumId = albumId,
+                PreviewUrl = null, // Will be populated by service layer
                 ExternalUrls = track.ExternalUrls?.Spotify != null ? new List<string> { track.ExternalUrls.Spotify } : null
             }).ToList();
         }

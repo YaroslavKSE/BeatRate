@@ -7,6 +7,9 @@ public class TrackSummaryDto : BaseSpotifyItemDto
     public bool IsExplicit { get; set; }
     public int? TrackNumber { get; set; }
     public string AlbumId { get; set; }
+    
+    public string PreviewUrl { get; set; }
+
 }
 
 public class TrackDetailDto : TrackSummaryDto

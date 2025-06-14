@@ -12,6 +12,7 @@ public class ArtistService : IArtistService
     private readonly ISpotifyApiClient _spotifyApiClient;
     private readonly ICatalogRepository _catalogRepository;
     private readonly ICacheService _cacheService;
+    private readonly ISpotifyPreviewExtractor _previewExtractor;
     private readonly ILogger<ArtistService> _logger;
     private readonly SpotifySettings _spotifySettings;
 
@@ -19,12 +20,14 @@ public class ArtistService : IArtistService
         ISpotifyApiClient spotifyApiClient,
         ICatalogRepository catalogRepository,
         ICacheService cacheService,
+        ISpotifyPreviewExtractor previewExtractor,
         ILogger<ArtistService> logger,
         IOptions<SpotifySettings> spotifySettings)
     {
         _spotifyApiClient = spotifyApiClient;
         _catalogRepository = catalogRepository;
         _cacheService = cacheService;
+        _previewExtractor = previewExtractor;
         _logger = logger;
         _spotifySettings = spotifySettings.Value;
     }
@@ -425,8 +428,69 @@ public class ArtistService : IArtistService
                 };
             }
 
+            // Extract preview URLs for top tracks 
+            List<string> extractedPreviewUrls = null;
+            try
+            {
+                _logger.LogInformation("Extracting preview URLs for {Count} top tracks of artist {SpotifyId}", 
+                    topTracksResponse.Tracks.Count, spotifyId);
+                
+                // Extract preview URLs for all top tracks in parallel
+                var previewTasks = topTracksResponse.Tracks
+                    .Select(async track => await _previewExtractor.GetTrackPreviewUrlAsync(track.Id));
+                
+                extractedPreviewUrls = (await Task.WhenAll(previewTasks)).ToList();
+                
+                _logger.LogInformation("Successfully extracted {Count} preview URLs for top tracks of artist {SpotifyId}", 
+                    extractedPreviewUrls.Count(url => !string.IsNullOrEmpty(url)), spotifyId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to extract preview URLs for top tracks of artist {SpotifyId}", spotifyId);
+                extractedPreviewUrls = new List<string>();
+            }
+
+            // Update tracks in database with preview URLs if we extracted any
+            var trackUpdateTasks = new List<Task>();
+            for (int i = 0; i < Math.Min(topTracksResponse.Tracks.Count, extractedPreviewUrls?.Count ?? 0); i++)
+            {
+                var track = topTracksResponse.Tracks[i];
+                var previewUrl = extractedPreviewUrls?[i];
+                
+                if (!string.IsNullOrEmpty(previewUrl))
+                {
+                    var updateTask = UpdateTrackWithPreviewUrlAsync(track.Id, previewUrl);
+                    trackUpdateTasks.Add(updateTask);
+                }
+            }
+            
+            // Execute track updates in parallel (fire and forget)
+            _ = Task.WhenAll(trackUpdateTasks).ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    _logger.LogWarning(t.Exception, "Some top track preview URL updates failed for artist {SpotifyId}", spotifyId);
+                }
+                else
+                {
+                    _logger.LogDebug("Successfully updated preview URLs for top tracks of artist {SpotifyId}", spotifyId);
+                }
+            });
+
             // Map the response to our DTO
             var mappedResult = ArtistMapper.MapToArtistTopTracksResultDto(topTracksResponse, spotifyId, artistName, market);
+
+            // Update the track summaries with extracted preview URLs
+            if (extractedPreviewUrls != null && extractedPreviewUrls.Any())
+            {
+                for (int i = 0; i < Math.Min(mappedResult.Tracks.Count, extractedPreviewUrls.Count); i++)
+                {
+                    if (!string.IsNullOrEmpty(extractedPreviewUrls[i]))
+                    {
+                        mappedResult.Tracks[i].PreviewUrl = extractedPreviewUrls[i];
+                    }
+                }
+            }
 
             // Update artist entity with top track IDs
             if (artist != null && topTracksResponse.Tracks != null)
@@ -487,6 +551,23 @@ public class ArtistService : IArtistService
         {
             _logger.LogError(ex, "Error saving artist with Spotify ID {SpotifyId}", spotifyId);
             throw;
+        }
+    }
+
+    private async Task UpdateTrackWithPreviewUrlAsync(string trackId, string previewUrl)
+    {
+        try
+        {
+            var existingTrack = await _catalogRepository.GetTrackBySpotifyIdAsync(trackId);
+            if (existingTrack != null)
+            {
+                existingTrack.PreviewUrl = previewUrl;
+                await _catalogRepository.AddOrUpdateTrackAsync(existingTrack);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to update track {TrackId} with preview URL", trackId);
         }
     }
 }

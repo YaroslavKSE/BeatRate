@@ -132,7 +132,7 @@ public static class TrackMapper
             TrackNumber = track.TrackNumber,
             DiscNumber = track.DiscNumber,
             Isrc = track.ExternalIds?.Isrc,
-            PreviewUrl = track.PreviewUrl,
+            PreviewUrl = track.PreviewUrl, // This will be updated by the service layer
             Artists = artistSummaries,
             Album = albumDto,
             ExternalUrls = track.ExternalUrls?.Spotify != null
@@ -160,6 +160,7 @@ public static class TrackMapper
             TrackNumber = track.TrackNumber,
             AlbumId = track.AlbumId,
             Popularity = track.Popularity,
+            PreviewUrl = track.PreviewUrl, // Now included in TrackSummaryDto
             ExternalUrls = track.SpotifyUrl != null ? new List<string> {track.SpotifyUrl} : null
         };
     }
@@ -187,7 +188,7 @@ public static class TrackMapper
         trackEntity.DurationMs = spotifyTrack.DurationMs;
         trackEntity.IsExplicit = spotifyTrack.Explicit;
         trackEntity.Isrc = spotifyTrack.ExternalIds?.Isrc;
-        trackEntity.PreviewUrl = spotifyTrack.PreviewUrl;
+        // PreviewUrl will be set by the service layer after extraction
         trackEntity.TrackNumber = spotifyTrack.TrackNumber;
         trackEntity.DiscNumber = spotifyTrack.DiscNumber;
         trackEntity.AlbumId = spotifyTrack.Album.Id;
@@ -203,5 +204,29 @@ public static class TrackMapper
         }).ToList();
 
         return trackEntity;
+    }
+
+    /// <summary>
+    /// Maps a SpotifyTrackResponse to a TrackSummaryDto (used for quick conversions)
+    /// </summary>
+    /// <param name="spotifyTrack">The Spotify track response</param>
+    /// <param name="previewUrl">Optional extracted preview URL</param>
+    /// <returns>A TrackSummaryDto representation</returns>
+    public static TrackSummaryDto MapSpotifyTrackToSummaryDto(SpotifyTrackResponse spotifyTrack, string previewUrl = null)
+    {
+        return new TrackSummaryDto
+        {
+            SpotifyId = spotifyTrack.Id,
+            Name = spotifyTrack.Name,
+            ArtistName = spotifyTrack.Artists.FirstOrDefault()?.Name ?? "Unknown Artist",
+            ImageUrl = ImageHelper.GetOptimalImage(spotifyTrack.Album?.Images),
+            DurationMs = spotifyTrack.DurationMs,
+            IsExplicit = spotifyTrack.Explicit,
+            TrackNumber = spotifyTrack.TrackNumber,
+            AlbumId = spotifyTrack.Album?.Id,
+            Popularity = spotifyTrack.Popularity,
+            PreviewUrl = previewUrl, // Include extracted preview URL
+            ExternalUrls = spotifyTrack.ExternalUrls?.Spotify != null ? new List<string> {spotifyTrack.ExternalUrls.Spotify} : null
+        };
     }
 }
