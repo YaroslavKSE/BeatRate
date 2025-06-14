@@ -97,6 +97,7 @@ const ArtistContentTabs = ({
 
     const loadTopPreviews = async (spotifyId: string, tracks: TrackSummary[]) => {
         if(tracks == null) return;
+        if(tracks[0].previewUrl) return;
         const previewsArray = await getSeveralPreviewsUrl(spotifyId, "artist");
         let i = 0;
         if(previewsArray){

@@ -74,11 +74,12 @@ const Album = () => {
     const loadAlbumPreviews = async (albumData: AlbumDetail | null) => {
         console.log("reloading previews");
         if(albumData == null) return;
+        if(albumData.tracks.length < 50 && albumData.tracks[0].previewUrl) return;
         const previewsArray = await getSeveralPreviewsUrl(albumData.spotifyId);
         let i = 0;
         if(previewsArray){
             for(const track of albumData.tracks){
-                if (i < previewsArray.length && !track.previewUrl) {
+                if (i < previewsArray.length) {
                     track.previewUrl = previewsArray[i];
                     i++;
                 }
