@@ -78,7 +78,7 @@ const Album = () => {
         let i = 0;
         if(previewsArray){
             for(const track of albumData.tracks){
-                if (i < previewsArray.length) {
+                if (i < previewsArray.length && !track.previewUrl) {
                     track.previewUrl = previewsArray[i];
                     i++;
                 }

@@ -57,6 +57,7 @@ const Song = () => {
 
     const loadTrackPreview = async (track: TrackSummary | null) => {
         if(track == null) return;
+        if(track.previewUrl) return;
         const preview = await getTrackPreviewUrl(track.spotifyId);
         if(preview){
             track.previewUrl = preview;
