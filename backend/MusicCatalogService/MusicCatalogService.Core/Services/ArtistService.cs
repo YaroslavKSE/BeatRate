@@ -48,12 +48,12 @@ public class ArtistService : IArtistService
 
         // Try to get from database
         var artist = await _catalogRepository.GetArtistBySpotifyIdAsync(spotifyId);
-        
+
         // If we have a valid database entry, use it - even if expired
         // This allows working with data when Spotify is unavailable
         if (artist != null)
         {
-            _logger.LogInformation("Artist {SpotifyId} retrieved from database (valid: {IsValid})", 
+            _logger.LogInformation("Artist {SpotifyId} retrieved from database (valid: {IsValid})",
                 spotifyId, DateTime.UtcNow < artist.CacheExpiresAt);
 
             // Map entity to DTO directly
@@ -67,11 +67,8 @@ public class ArtistService : IArtistService
                 TimeSpan.FromMinutes(_spotifySettings.CacheExpirationMinutes));
 
             // If artist is not expired, return it
-            if (DateTime.UtcNow < artist.CacheExpiresAt)
-            {
-                return artistDto;
-            }
-            
+            if (DateTime.UtcNow < artist.CacheExpiresAt) return artistDto;
+
             // If artist is expired, try to refresh from Spotify
             // But we already have the data to return as fallback
             try
@@ -79,10 +76,11 @@ public class ArtistService : IArtistService
                 _logger.LogInformation("Attempting to refresh expired artist {SpotifyId} from Spotify", spotifyId);
                 // Continue to the Spotify API call below
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 // If any error occurs during refresh, still use the stale data
-                _logger.LogWarning(ex, "Error refreshing artist {SpotifyId} from Spotify, using expired data", spotifyId);
+                _logger.LogWarning(ex, "Error refreshing artist {SpotifyId} from Spotify, using expired data",
+                    spotifyId);
                 return artistDto;
             }
         }
@@ -90,17 +88,18 @@ public class ArtistService : IArtistService
         // Fetch from Spotify API
         _logger.LogInformation("Fetching artist {SpotifyId} from Spotify API", spotifyId);
         var spotifyArtist = await _spotifyApiClient.GetArtistAsync(spotifyId);
-        
+
         // If Spotify API returns null (which could be due to token failure or other issues),
         // and we already have data (even if expired), return it
         if (spotifyArtist == null)
         {
             if (artist != null)
             {
-                _logger.LogWarning("Spotify API returned null for {SpotifyId}, using existing data from database", spotifyId);
+                _logger.LogWarning("Spotify API returned null for {SpotifyId}, using existing data from database",
+                    spotifyId);
                 return ArtistMapper.MapArtistEntityToDto(artist);
             }
-            
+
             _logger.LogWarning("Artist {SpotifyId} not found in Spotify and no local data available", spotifyId);
             return null;
         }
@@ -130,40 +129,37 @@ public class ArtistService : IArtistService
         try
         {
             _logger.LogInformation("Retrieving artist with catalog ID: {CatalogId}", catalogId);
-            
+
             // Get artist by catalog ID directly from database
             var artist = await _catalogRepository.GetArtistByIdAsync(catalogId);
-            
+
             if (artist == null)
             {
                 _logger.LogWarning("Artist with catalog ID {CatalogId} not found", catalogId);
                 return null;
             }
-            
+
             // For catalog ID lookups, we still try to refresh expired data
             // but we'll return what we have regardless
             if (DateTime.UtcNow > artist.CacheExpiresAt)
             {
-                _logger.LogInformation("Artist with catalog ID {CatalogId} is expired, attempting refresh from Spotify", 
+                _logger.LogInformation("Artist with catalog ID {CatalogId} is expired, attempting refresh from Spotify",
                     catalogId);
-                
+
                 try
                 {
                     // Try to refresh from Spotify
                     var refreshedArtist = await GetArtistAsync(artist.SpotifyId);
-                    if (refreshedArtist != null)
-                    {
-                        return refreshedArtist;
-                    }
+                    if (refreshedArtist != null) return refreshedArtist;
                 }
                 catch (Exception ex)
                 {
                     // If refresh fails, log and continue with existing data
-                    _logger.LogWarning(ex, "Failed to refresh expired artist {SpotifyId}, using existing data", 
+                    _logger.LogWarning(ex, "Failed to refresh expired artist {SpotifyId}, using existing data",
                         artist.SpotifyId);
                 }
             }
-            
+
             // Map entity to DTO directly and return what we have
             return ArtistMapper.MapArtistEntityToDto(artist);
         }
@@ -174,7 +170,8 @@ public class ArtistService : IArtistService
         }
     }
 
-    public async Task<ArtistAlbumsResultDto> GetArtistAlbumsAsync(string spotifyId, int limit = 20, int offset = 0, string? market = null, string? includeGroups = "album")
+    public async Task<ArtistAlbumsResultDto> GetArtistAlbumsAsync(string spotifyId, int limit = 20, int offset = 0,
+        string? market = null, string? includeGroups = "album")
     {
         try
         {
@@ -183,16 +180,17 @@ public class ArtistService : IArtistService
 
             // Try to get from cache first
             var cachedResult = await _cacheService.GetAsync<ArtistAlbumsResultDto>(cacheKey);
-            
+
             // Check if cached result is complete (has expected number of items)
-            bool cacheComplete = false;
+            var cacheComplete = false;
             if (cachedResult != null)
             {
                 // If this is a paged request (offset > 0), check if we have all items up to limit
                 // If this is the first page, we should have at least the requested limit or all available items
-                cacheComplete = cachedResult.Albums.Count == limit || 
-                               (cachedResult.Albums.Count < limit && cachedResult.Albums.Count == cachedResult.TotalResults - offset);
-                    
+                cacheComplete = cachedResult.Albums.Count == limit ||
+                                (cachedResult.Albums.Count < limit &&
+                                 cachedResult.Albums.Count == cachedResult.TotalResults - offset);
+
                 if (cacheComplete)
                 {
                     _logger.LogInformation("Complete artist albums for {SpotifyId} retrieved from cache", spotifyId);
@@ -200,46 +198,47 @@ public class ArtistService : IArtistService
                 }
                 else
                 {
-                    _logger.LogInformation("Incomplete cache result found for artist albums. Expected: {Limit}, Found: {CachedCount}",
+                    _logger.LogInformation(
+                        "Incomplete cache result found for artist albums. Expected: {Limit}, Found: {CachedCount}",
                         limit, cachedResult.Albums.Count);
                 }
             }
 
             // Get the artist to ensure it exists and to get the name and stored albums
             var artist = await _catalogRepository.GetArtistBySpotifyIdAsync(spotifyId);
-            string artistName = "Unknown Artist";
+            var artistName = "Unknown Artist";
             List<string> storedAlbumIds = new List<string>();
 
             if (artist != null)
             {
                 artistName = artist.Name;
                 storedAlbumIds = artist.AlbumIds;
-                
+
                 // If we have album IDs stored and Spotify API is unavailable,
                 // we can still return something useful
                 if (storedAlbumIds.Any())
                 {
                     _logger.LogInformation("Using stored album IDs for artist {SpotifyId}", spotifyId);
-                    
+
                     // Apply paging logic
                     var pagedAlbumIds = storedAlbumIds
                         .Skip(offset)
                         .Take(limit)
                         .ToList();
-                    
+
                     // Try to get album details from our database
                     var albums = await _catalogRepository.GetBatchAlbumsBySpotifyIdsAsync(pagedAlbumIds);
-                    
+
                     // Check if we got enough albums
-                    bool databaseComplete = albums.Count() == pagedAlbumIds.Count;
-                    
+                    var databaseComplete = albums.Count() == pagedAlbumIds.Count;
+
                     if (albums.Any() && databaseComplete)
                     {
                         var albumSummaries = albums
                             .Where(a => a != null)
                             .Select(album => AlbumMapper.MapToAlbumSummaryDto(album))
                             .ToList();
-                        
+
                         var result = new ArtistAlbumsResultDto
                         {
                             ArtistId = spotifyId,
@@ -249,13 +248,13 @@ public class ArtistService : IArtistService
                             TotalResults = storedAlbumIds.Count,
                             Albums = albumSummaries
                         };
-                        
+
                         // Cache the result
                         await _cacheService.SetAsync(
                             cacheKey,
                             result,
                             TimeSpan.FromMinutes(_spotifySettings.CacheExpirationMinutes));
-                        
+
                         return result;
                     }
                 }
@@ -264,15 +263,15 @@ public class ArtistService : IArtistService
             {
                 // Try to fetch artist from Spotify
                 var artistResponse = await _spotifyApiClient.GetArtistAsync(spotifyId);
-                if (artistResponse != null)
-                {
-                    artistName = artistResponse.Name;
-                }
+                if (artistResponse != null) artistName = artistResponse.Name;
             }
-            
+
             // Fetch albums from Spotify API
-            _logger.LogInformation("Fetching albums for artist {SpotifyId} from Spotify API with include_groups={IncludeGroups}", spotifyId, includeGroups);
-            var albumsResponse = await _spotifyApiClient.GetArtistAlbumsAsync(spotifyId, limit, offset, market, includeGroups);
+            _logger.LogInformation(
+                "Fetching albums for artist {SpotifyId} from Spotify API with include_groups={IncludeGroups}",
+                spotifyId, includeGroups);
+            var albumsResponse =
+                await _spotifyApiClient.GetArtistAlbumsAsync(spotifyId, limit, offset, market, includeGroups);
 
             // If Spotify API is unavailable and we have no stored data, return a minimal result
             if (albumsResponse == null)
@@ -289,22 +288,20 @@ public class ArtistService : IArtistService
             }
 
             // Map the response to our DTO
-            var mappedResult = ArtistMapper.MapToArtistAlbumsResultDto(albumsResponse, spotifyId, artistName, limit, offset);
+            var mappedResult =
+                ArtistMapper.MapToArtistAlbumsResultDto(albumsResponse, spotifyId, artistName, limit, offset);
 
             // Update artist entity with album IDs if available
             if (artist != null && albumsResponse.Items != null && albumsResponse.Items.Any())
             {
                 var albumIds = albumsResponse.Items.Select(a => a.Id).ToList();
-                
+
                 // Add new album IDs to the artist's collection - avoiding duplicates
                 var existingIds = new HashSet<string>(artist.AlbumIds ?? new List<string>());
-                foreach (var albumId in albumIds.Where(id => !existingIds.Contains(id)))
-                {
-                    existingIds.Add(albumId);
-                }
-                
+                foreach (var albumId in albumIds.Where(id => !existingIds.Contains(id))) existingIds.Add(albumId);
+
                 artist.AlbumIds = existingIds.ToList();
-                
+
                 // Update the artist entity in the database
                 await _catalogRepository.AddOrUpdateArtistAsync(artist);
             }
@@ -336,54 +333,72 @@ public class ArtistService : IArtistService
 
             // Try to get from cache first
             var cachedResult = await _cacheService.GetAsync<ArtistTopTracksResultDto>(cacheKey);
-            
+
             // Check if cached result is valid (typically should have 10 tracks for top tracks)
-            bool cacheComplete = false;
+            var cacheComplete = false;
             if (cachedResult != null)
             {
                 // For top tracks, Spotify typically returns 10 tracks
                 // But we'll be more flexible and just check if there are any tracks
                 cacheComplete = cachedResult.Tracks.Count > 0;
-                    
+
                 if (cacheComplete)
                 {
-                    _logger.LogInformation("Complete artist top tracks for {SpotifyId} retrieved from cache", spotifyId);
+                    _logger.LogInformation("Complete artist top tracks for {SpotifyId} retrieved from cache",
+                        spotifyId);
+
+                    // IMPORTANT: Refresh preview URLs from database even when cached
+                    if (cachedResult.Tracks != null && cachedResult.Tracks.Any())
+                    {
+                        var trackIds = cachedResult.Tracks.Select(t => t.SpotifyId).ToList();
+                        var tracksFromDb = await _catalogRepository.GetBatchTracksBySpotifyIdsAsync(trackIds);
+
+                        // Update cached tracks with preview URLs from database
+                        foreach (var track in cachedResult.Tracks)
+                        {
+                            var dbTrack = tracksFromDb.FirstOrDefault(t => t?.SpotifyId == track.SpotifyId);
+                            if (dbTrack != null && !string.IsNullOrEmpty(dbTrack.PreviewUrl))
+                                track.PreviewUrl = dbTrack.PreviewUrl;
+                        }
+                    }
+
                     return cachedResult;
                 }
 
-                _logger.LogInformation("Incomplete cache result found for artist top tracks. Found only: {CachedCount} tracks",
+                _logger.LogInformation(
+                    "Incomplete cache result found for artist top tracks. Found only: {CachedCount} tracks",
                     cachedResult.Tracks.Count);
             }
 
             // Get the artist to ensure it exists and to get the name
             var artist = await _catalogRepository.GetArtistBySpotifyIdAsync(spotifyId);
-            string artistName = "Unknown Artist";
+            var artistName = "Unknown Artist";
             List<string> storedTrackIds = new List<string>();
 
             if (artist != null)
             {
                 artistName = artist.Name;
                 storedTrackIds = artist.TopTrackIds ?? new List<string>();
-                
+
                 // If we have track IDs stored and Spotify API is unavailable,
                 // we can still return something useful
                 if (storedTrackIds.Any())
                 {
                     _logger.LogInformation("Using stored top track IDs for artist {SpotifyId}", spotifyId);
-                    
+
                     // Try to get track details from our database
                     var tracks = await _catalogRepository.GetBatchTracksBySpotifyIdsAsync(storedTrackIds);
-                    
+
                     // Check if we got enough tracks (typically 10 for top tracks)
-                    bool databaseComplete = tracks.Count() == storedTrackIds.Count;
-                    
+                    var databaseComplete = tracks.Count() == storedTrackIds.Count;
+
                     if (tracks.Any() && databaseComplete)
                     {
                         var trackSummaries = tracks
                             .Where(t => t != null)
-                            .Select(TrackMapper.MapToTrackSummaryDto)
+                            .Select(TrackMapper.MapToTrackSummaryDto) // This will include preview URLs
                             .ToList();
-                        
+
                         var result = new ArtistTopTracksResultDto
                         {
                             ArtistId = spotifyId,
@@ -391,13 +406,13 @@ public class ArtistService : IArtistService
                             Market = market,
                             Tracks = trackSummaries
                         };
-                        
+
                         // Cache the result
                         await _cacheService.SetAsync(
                             cacheKey,
                             result,
                             TimeSpan.FromMinutes(_spotifySettings.CacheExpirationMinutes));
-                        
+
                         return result;
                     }
                 }
@@ -406,12 +421,9 @@ public class ArtistService : IArtistService
             {
                 // Try to fetch artist from Spotify
                 var artistResponse = await _spotifyApiClient.GetArtistAsync(spotifyId);
-                if (artistResponse != null)
-                {
-                    artistName = artistResponse.Name;
-                }
+                if (artistResponse != null) artistName = artistResponse.Name;
             }
-            
+
             // Fetch top tracks from Spotify API
             _logger.LogInformation("Fetching top tracks for artist {SpotifyId} from Spotify API", spotifyId);
             var topTracksResponse = await _spotifyApiClient.GetArtistTopTracksAsync(spotifyId, market);
@@ -432,72 +444,67 @@ public class ArtistService : IArtistService
             List<string> extractedPreviewUrls = null;
             try
             {
-                _logger.LogInformation("Extracting preview URLs for {Count} top tracks of artist {SpotifyId}", 
+                _logger.LogInformation("Extracting preview URLs for {Count} top tracks of artist {SpotifyId}",
                     topTracksResponse.Tracks.Count, spotifyId);
-                
+
                 // Extract preview URLs for all top tracks in parallel
                 var previewTasks = topTracksResponse.Tracks
                     .Select(async track => await _previewExtractor.GetTrackPreviewUrlAsync(track.Id));
-                
+
                 extractedPreviewUrls = (await Task.WhenAll(previewTasks)).ToList();
-                
-                _logger.LogInformation("Successfully extracted {Count} preview URLs for top tracks of artist {SpotifyId}", 
+
+                _logger.LogInformation(
+                    "Successfully extracted {Count} preview URLs for top tracks of artist {SpotifyId}",
                     extractedPreviewUrls.Count(url => !string.IsNullOrEmpty(url)), spotifyId);
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to extract preview URLs for top tracks of artist {SpotifyId}", spotifyId);
+                _logger.LogWarning(ex, "Failed to extract preview URLs for top tracks of artist {SpotifyId}",
+                    spotifyId);
                 extractedPreviewUrls = new List<string>();
             }
 
             // Update tracks in database with preview URLs if we extracted any
             var trackUpdateTasks = new List<Task>();
-            for (int i = 0; i < Math.Min(topTracksResponse.Tracks.Count, extractedPreviewUrls?.Count ?? 0); i++)
+            for (var i = 0; i < Math.Min(topTracksResponse.Tracks.Count, extractedPreviewUrls?.Count ?? 0); i++)
             {
                 var track = topTracksResponse.Tracks[i];
                 var previewUrl = extractedPreviewUrls?[i];
-                
+
                 if (!string.IsNullOrEmpty(previewUrl))
                 {
                     var updateTask = UpdateTrackWithPreviewUrlAsync(track.Id, previewUrl);
                     trackUpdateTasks.Add(updateTask);
                 }
             }
-            
+
             // Execute track updates in parallel (fire and forget)
             _ = Task.WhenAll(trackUpdateTasks).ContinueWith(t =>
             {
                 if (t.IsFaulted)
-                {
-                    _logger.LogWarning(t.Exception, "Some top track preview URL updates failed for artist {SpotifyId}", spotifyId);
-                }
+                    _logger.LogWarning(t.Exception, "Some top track preview URL updates failed for artist {SpotifyId}",
+                        spotifyId);
                 else
-                {
-                    _logger.LogDebug("Successfully updated preview URLs for top tracks of artist {SpotifyId}", spotifyId);
-                }
+                    _logger.LogDebug("Successfully updated preview URLs for top tracks of artist {SpotifyId}",
+                        spotifyId);
             });
 
             // Map the response to our DTO
-            var mappedResult = ArtistMapper.MapToArtistTopTracksResultDto(topTracksResponse, spotifyId, artistName, market);
+            var mappedResult =
+                ArtistMapper.MapToArtistTopTracksResultDto(topTracksResponse, spotifyId, artistName, market);
 
             // Update the track summaries with extracted preview URLs
             if (extractedPreviewUrls != null && extractedPreviewUrls.Any())
-            {
-                for (int i = 0; i < Math.Min(mappedResult.Tracks.Count, extractedPreviewUrls.Count); i++)
-                {
+                for (var i = 0; i < Math.Min(mappedResult.Tracks.Count, extractedPreviewUrls.Count); i++)
                     if (!string.IsNullOrEmpty(extractedPreviewUrls[i]))
-                    {
                         mappedResult.Tracks[i].PreviewUrl = extractedPreviewUrls[i];
-                    }
-                }
-            }
 
             // Update artist entity with top track IDs
             if (artist != null && topTracksResponse.Tracks != null)
             {
                 // Store top track IDs in the artist entity
                 artist.TopTrackIds = topTracksResponse.Tracks.Select(t => t.Id).ToList();
-                
+
                 // Update the artist entity in the database
                 await _catalogRepository.AddOrUpdateArtistAsync(artist);
             }
@@ -523,7 +530,7 @@ public class ArtistService : IArtistService
         try
         {
             _logger.LogInformation("Permanently saving artist with Spotify ID: {SpotifyId}", spotifyId);
-            
+
             // First, ensure we have the artist (either from cache, database or Spotify)
             var artistDto = await GetArtistAsync(spotifyId);
             if (artistDto == null)
@@ -531,7 +538,7 @@ public class ArtistService : IArtistService
                 _logger.LogWarning("Cannot save artist with Spotify ID {SpotifyId}: not found", spotifyId);
                 return null;
             }
-            
+
             // Retrieve the entity from the database
             var artist = await _catalogRepository.GetArtistBySpotifyIdAsync(spotifyId);
             if (artist == null)
@@ -539,11 +546,11 @@ public class ArtistService : IArtistService
                 _logger.LogError("Unexpected error: artist entity not found after GetArtistAsync succeeded");
                 throw new InvalidOperationException($"Artist entity with Spotify ID {spotifyId} not found");
             }
-            
+
             // Permanently save to database with extended expiration
             artist.CacheExpiresAt = DateTime.UtcNow.AddDays(1); // Extended cache time for saved items
             await _catalogRepository.SaveArtistAsync(artist);
-            
+
             // Return the artist DTO for the API response
             return artistDto;
         }

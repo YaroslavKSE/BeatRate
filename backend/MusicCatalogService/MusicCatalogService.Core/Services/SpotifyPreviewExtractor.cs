@@ -14,9 +14,9 @@ public class SpotifyPreviewExtractor : ISpotifyPreviewExtractor
     {
         _httpClient = httpClient;
         _logger = logger;
-        
+
         // Configure HttpClient for Spotify embed requests
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", 
+        _httpClient.DefaultRequestHeaders.Add("User-Agent",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
     }
 
@@ -26,12 +26,12 @@ public class SpotifyPreviewExtractor : ISpotifyPreviewExtractor
         {
             var embedUrl = $"https://open.spotify.com/embed/track/{spotifyTrackId}";
             _logger.LogDebug("Fetching track preview from: {EmbedUrl}", embedUrl);
-            
+
             var response = await _httpClient.GetAsync(embedUrl);
-            
+
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Failed to fetch Spotify embed page for track {TrackId}. Status: {StatusCode}", 
+                _logger.LogWarning("Failed to fetch Spotify embed page for track {TrackId}. Status: {StatusCode}",
                     spotifyTrackId, response.StatusCode);
                 return null;
             }
@@ -65,12 +65,12 @@ public class SpotifyPreviewExtractor : ISpotifyPreviewExtractor
         {
             var embedUrl = $"https://open.spotify.com/embed/album/{spotifyAlbumId}";
             _logger.LogDebug("Fetching album previews from: {EmbedUrl}", embedUrl);
-            
+
             var response = await _httpClient.GetAsync(embedUrl);
-            
+
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Failed to fetch Spotify embed page for album {AlbumId}. Status: {StatusCode}", 
+                _logger.LogWarning("Failed to fetch Spotify embed page for album {AlbumId}. Status: {StatusCode}",
                     spotifyAlbumId, response.StatusCode);
                 return new List<string>();
             }
@@ -78,7 +78,7 @@ public class SpotifyPreviewExtractor : ISpotifyPreviewExtractor
             var html = await response.Content.ReadAsStringAsync();
 
             // Extract JSON data from __NEXT_DATA__ script tag
-            var scriptRegex = new Regex(@"<script id=""__NEXT_DATA__"" type=""application\/json"">(.+?)<\/script>", 
+            var scriptRegex = new Regex(@"<script id=""__NEXT_DATA__"" type=""application\/json"">(.+?)<\/script>",
                 RegexOptions.Singleline | RegexOptions.IgnoreCase);
             var scriptMatch = scriptRegex.Match(html);
 
@@ -89,7 +89,7 @@ public class SpotifyPreviewExtractor : ISpotifyPreviewExtractor
             }
 
             var jsonContent = scriptMatch.Groups[1].Value;
-            
+
             using var jsonDoc = JsonDocument.Parse(jsonContent);
             var root = jsonDoc.RootElement;
 
@@ -108,21 +108,14 @@ public class SpotifyPreviewExtractor : ISpotifyPreviewExtractor
             var previewUrls = new List<string>();
 
             if (trackList.ValueKind == JsonValueKind.Array)
-            {
                 foreach (var track in trackList.EnumerateArray())
-                {
                     if (track.TryGetProperty("audioPreview", out var audioPreview) &&
                         audioPreview.TryGetProperty("url", out var urlElement) &&
                         urlElement.ValueKind == JsonValueKind.String)
                     {
                         var url = urlElement.GetString();
-                        if (!string.IsNullOrEmpty(url))
-                        {
-                            previewUrls.Add(url);
-                        }
+                        if (!string.IsNullOrEmpty(url)) previewUrls.Add(url);
                     }
-                }
-            }
 
             _logger.LogDebug("Found {Count} preview URLs for album {AlbumId}", previewUrls.Count, spotifyAlbumId);
             return previewUrls;
