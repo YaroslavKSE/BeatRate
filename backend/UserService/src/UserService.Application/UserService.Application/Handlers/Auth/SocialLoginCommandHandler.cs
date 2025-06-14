@@ -59,7 +59,6 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
                 candidateUsername = $"{username}{attempt++}";
             username = candidateUsername;
 
-            
             var newUser = User.Create(
                 userInfo.Email,
                 username,
@@ -81,32 +80,6 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
         else
         {
             _logger.LogInformation("Existing user logged in via social login: Email: {Email}", userInfo.Email);
-
-            // Update user info if it has changed (but keep existing avatar)
-            var hasChanges = false;
-            
-            if (existingUser.Name != userInfo.Name)
-            {
-                hasChanges = true;
-                _logger.LogInformation("Updating user name from '{OldName}' to '{NewName}'", 
-                    existingUser.Name, userInfo.Name);
-            }
-            
-            if (existingUser.Surname != userInfo.Surname)
-            {
-                hasChanges = true;
-                _logger.LogInformation("Updating user surname from '{OldSurname}' to '{NewSurname}'", 
-                    existingUser.Surname, userInfo.Surname);
-            }
-
-            if (hasChanges)
-            {
-                // Update name and surname but preserve existing avatar and bio
-                existingUser.Update(existingUser.Username, userInfo.Name, userInfo.Surname, existingUser.Bio);
-                await _userRepository.SaveChangesAsync();
-                
-                _logger.LogInformation("Updated user info for existing user: {Email}", userInfo.Email);
-            }
         }
 
         return new LoginResponseDto
