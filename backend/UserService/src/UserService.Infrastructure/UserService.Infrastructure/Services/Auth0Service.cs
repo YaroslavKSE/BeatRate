@@ -258,14 +258,48 @@ public class Auth0Service : IAuth0Service
             // Ensure username is valid by removing special characters
             username = System.Text.RegularExpressions.Regex.Replace(username, "[^a-zA-Z0-9_-]", "");
 
+            // Parse name and surname properly
+            var firstName = "";
+            var lastName = "";
+
+            if (!string.IsNullOrEmpty(userInfo.GivenName))
+            {
+                firstName = userInfo.GivenName.Trim();
+            }
+            
+            if (!string.IsNullOrEmpty(userInfo.FamilyName))
+            {
+                lastName = userInfo.FamilyName.Trim();
+            }
+
+            // If given_name/family_name are not available, try to parse the full name
+            if (string.IsNullOrEmpty(firstName) && string.IsNullOrEmpty(lastName) && !string.IsNullOrEmpty(userInfo.Name))
+            {
+                var nameParts = userInfo.Name.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (nameParts.Length > 0)
+                {
+                    firstName = nameParts[0];
+                    if (nameParts.Length > 1)
+                    {
+                        lastName = string.Join(" ", nameParts.Skip(1));
+                    }
+                }
+            }
+
+            // Fallback values
+            if (string.IsNullOrEmpty(firstName))
+            {
+                firstName = "User";
+            }
+
             return new UserInfoDto
             {
                 UserId = userInfo.Sub,
                 Email = userInfo.Email,
                 Username = username,
-                Name = userInfo.Name ?? $"{userInfo.GivenName} {userInfo.FamilyName}".Trim(),
-                Surname = userInfo.FamilyName ?? string.Empty,
-                Picture = userInfo.Picture
+                Name = firstName,
+                Surname = lastName,
+                Picture = null // Don't use Google avatars to avoid 429 errors
             };
         }
         catch (Exception ex) when (ex is not Auth0Exception)

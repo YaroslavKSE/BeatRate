@@ -49,10 +49,6 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
 
         if (existingUser == null)
         {
-            // New user - create with Google avatar
-            var name = string.IsNullOrEmpty(userInfo.Name) ? "User" : userInfo.Name;
-            var surname = string.IsNullOrEmpty(userInfo.Surname) ? "" : userInfo.Surname;
-
             // Use the username from userInfo (already processed for uniqueness in Auth0Service)
             var username = userInfo.Username;
 
@@ -63,14 +59,14 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
                 candidateUsername = $"{username}{attempt++}";
             username = candidateUsername;
 
-            // Create new user with Google avatar
+            
             var newUser = User.Create(
                 userInfo.Email,
                 username,
-                name,
-                surname,
+                userInfo.Name,
+                userInfo.Surname,
                 userInfo.UserId,
-                userInfo.Picture); // Use Google avatar for new users
+                null);     
 
             await _userRepository.AddAsync(newUser);
             await _userRepository.SaveChangesAsync();
@@ -79,29 +75,38 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
             await _auth0Service.AssignDefaultRoleAsync(userInfo.UserId);
 
             _logger.LogInformation(
-                "New user created from Google login: Email: {Email}, Username: {Username}, Avatar: {Avatar}",
-                userInfo.Email, username, userInfo.Picture);
+                "New user created from social login: Email: {Email}, Username: {Username}, Name: {Name}, Surname: {Surname}",
+                userInfo.Email, username, userInfo.Name, userInfo.Surname);
         }
         else
         {
-            // Existing user - preserve custom avatar if it exists
-            // Our database is the source of truth for avatars
-            var shouldUpdateAvatar = ShouldUpdateAvatarFromGoogle(existingUser.AvatarUrl, userInfo.Picture);
+            _logger.LogInformation("Existing user logged in via social login: Email: {Email}", userInfo.Email);
 
-            if (shouldUpdateAvatar)
+            // Update user info if it has changed (but keep existing avatar)
+            var hasChanges = false;
+            
+            if (existingUser.Name != userInfo.Name)
             {
-                existingUser.UpdateAvatar(userInfo.Picture);
+                hasChanges = true;
+                _logger.LogInformation("Updating user name from '{OldName}' to '{NewName}'", 
+                    existingUser.Name, userInfo.Name);
+            }
+            
+            if (existingUser.Surname != userInfo.Surname)
+            {
+                hasChanges = true;
+                _logger.LogInformation("Updating user surname from '{OldSurname}' to '{NewSurname}'", 
+                    existingUser.Surname, userInfo.Surname);
+            }
+
+            if (hasChanges)
+            {
+                // Update name and surname but preserve existing avatar and bio
+                existingUser.Update(existingUser.Username, userInfo.Name, userInfo.Surname, existingUser.Bio);
                 await _userRepository.SaveChangesAsync();
-                _logger.LogInformation("Updated avatar for existing user from Google: {Email}, New Avatar: {Avatar}",
-                    userInfo.Email, userInfo.Picture);
+                
+                _logger.LogInformation("Updated user info for existing user: {Email}", userInfo.Email);
             }
-            else
-            {
-                _logger.LogInformation("Preserving existing custom avatar for user: {Email}, Current Avatar: {Avatar}",
-                    userInfo.Email, existingUser.AvatarUrl);
-            }
-
-            _logger.LogInformation("Existing user logged in via Google: Email: {Email}", userInfo.Email);
         }
 
         return new LoginResponseDto
@@ -111,60 +116,5 @@ public class SocialLoginCommandHandler : IRequestHandler<SocialLoginCommand, Log
             ExpiresIn = authTokenResponse.ExpiresIn,
             TokenType = authTokenResponse.TokenType
         };
-    }
-
-    /// <summary>
-    /// Determines if the avatar should be updated from Google login.
-    /// Only updates if user doesn't have a custom avatar (uploaded to our S3).
-    /// </summary>
-    /// <param name="currentAvatarUrl">Current avatar URL in our database</param>
-    /// <param name="googleAvatarUrl">Avatar URL from Google</param>
-    /// <returns>True if avatar should be updated, false otherwise</returns>
-    private bool ShouldUpdateAvatarFromGoogle(string currentAvatarUrl, string googleAvatarUrl)
-    {
-        // If Google doesn't have an avatar, don't update
-        if (string.IsNullOrEmpty(googleAvatarUrl))
-            return false;
-
-        // If user doesn't have any avatar, use the Google one
-        if (string.IsNullOrEmpty(currentAvatarUrl))
-            return true;
-
-        // If user has a custom avatar (from our S3), preserve it
-        if (IsCustomS3Avatar(currentAvatarUrl))
-        {
-            _logger.LogInformation("User has custom S3 avatar, preserving it: {AvatarUrl}", currentAvatarUrl);
-            return false;
-        }
-
-        // If current avatar is from Google but different from the new one, update it
-        // This handles cases where user changed their Google profile picture
-        if (IsGoogleAvatar(currentAvatarUrl) && currentAvatarUrl != googleAvatarUrl)
-        {
-            _logger.LogInformation("Updating Google avatar from {OldUrl} to {NewUrl}",
-                currentAvatarUrl, googleAvatarUrl);
-            return true;
-        }
-
-        // Same Google avatar, no need to update
-        return false;
-    }
-
-    /// <summary>
-    /// Checks if avatar is from our S3 bucket
-    /// </summary>
-    private bool IsCustomS3Avatar(string avatarUrl)
-    {
-        return !string.IsNullOrEmpty(avatarUrl) &&
-               avatarUrl.Contains("beatrate-avatar-s3.s3.amazonaws.com", StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Checks if avatar is from Google
-    /// </summary>
-    private bool IsGoogleAvatar(string avatarUrl)
-    {
-        return !string.IsNullOrEmpty(avatarUrl) &&
-               avatarUrl.Contains("googleusercontent.com", StringComparison.OrdinalIgnoreCase);
     }
 }
