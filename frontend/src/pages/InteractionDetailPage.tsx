@@ -8,7 +8,7 @@ import UsersService, { UserSummary, PublicUserProfile } from '../api/users';
 import { formatDate } from '../utils/formatters';
 import NormalizedStarDisplay from '../components/CreateInteraction/NormalizedStarDisplay';
 import ComplexRatingModal from '../components/common/ComplexRatingModal.tsx';
-import {getTrackPreviewUrl} from "../utils/preview-extractor.ts";
+// import {getTrackPreviewUrl} from "../utils/preview-extractor.ts";
 
 // Combined type for catalog items
 type CatalogItemType = AlbumDetail | TrackDetail;
@@ -58,7 +58,7 @@ const InteractionDetailPage = () => {
                     itemData = await CatalogService.getAlbum(interactionData.itemId);
                 } else {
                     itemData = await CatalogService.getTrack(interactionData.itemId);
-                    loadTrackPreview(itemData);
+                    // loadTrackPreview(itemData);
                 }
                 setCatalogItem(itemData);
 
@@ -134,14 +134,14 @@ const InteractionDetailPage = () => {
         };
     }, []);
 
-    const loadTrackPreview = async (track: TrackSummary | null) => {
-        if(track == null) return;
-        if(track.previewUrl) return;
-        const preview = await getTrackPreviewUrl(track.spotifyId);
-        if(preview){
-            track.previewUrl = preview;
-        }
-    }
+    // const loadTrackPreview = async (track: TrackSummary | null) => {
+    //     if(track == null) return;
+    //     if(track.previewUrl) return;
+    //     const preview = await getTrackPreviewUrl(track.spotifyId);
+    //     if(preview){
+    //         track.previewUrl = preview;
+    //     }
+    // }
 
     // Function to fetch user data for comments in batch
     const fetchUsersForComments = async (userIds: string[]) => {

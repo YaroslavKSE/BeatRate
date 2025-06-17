@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import CatalogService, {TrackDetail, TrackSummary} from '../api/catalog';
-import {getTrackPreviewUrl} from '../utils/preview-extractor';
+import CatalogService, {TrackDetail} from '../api/catalog';
+// import {getTrackPreviewUrl} from '../utils/preview-extractor';
 import SongHeader from '../components/Song/SongHeader';
 import SongContentTabs from '../components/Song/SongContentTabs';
 import LoadingState from '../components/Song/LoadingState';
@@ -33,7 +33,7 @@ const Song = () => {
 
             try {
                 const trackData = await CatalogService.getTrack(id);
-                loadTrackPreview(trackData);
+                // loadTrackPreview(trackData);
                 setTrack(trackData);
             } catch (err) {
                 console.error('Error fetching track details:', err);
@@ -55,14 +55,14 @@ const Song = () => {
         };
     }, []);
 
-    const loadTrackPreview = async (track: TrackSummary | null) => {
-        if(track == null) return;
-        if(track.previewUrl) return;
-        const preview = await getTrackPreviewUrl(track.spotifyId);
-        if(preview){
-            track.previewUrl = preview;
-        }
-    }
+    // const loadTrackPreview = async (track: TrackSummary | null) => {
+    //     if(track == null) return;
+    //     if(track.previewUrl) return;
+    //     const preview = await getTrackPreviewUrl(track.spotifyId);
+    //     if(preview){
+    //         track.previewUrl = preview;
+    //     }
+    // }
 
     const handlePreviewToggle = async () => {
         if (!track) return;
