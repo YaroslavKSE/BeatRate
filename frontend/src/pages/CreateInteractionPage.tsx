@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-import CatalogService, {TrackSummary} from '../api/catalog';
+import CatalogService from '../api/catalog';
 import InteractionService, {
     GradingMethodSummary,
     GradingMethodDetail,
@@ -9,7 +9,7 @@ import InteractionService, {
     BlockComponent,
     PostInteractionRequest
 } from '../api/interaction';
-import { getTrackPreviewUrl } from '../utils/preview-extractor';
+// import { getTrackPreviewUrl } from '../utils/preview-extractor';
 import LoadingState from '../components/Album/LoadingState';
 import ErrorState from '../components/Song/ErrorState';
 import NotFoundState from '../components/Song/NotFoundState';
@@ -63,7 +63,7 @@ const CreateInteractionPage = () => {
                     itemData = await CatalogService.getAlbum(itemId);
                 } else if (itemType === 'track') {
                     itemData = await CatalogService.getTrack(itemId);
-                    loadTrackPreview(itemData);
+                    // loadTrackPreview(itemData);
                 } else {
                     setError('Invalid item type specified');
                     setLoading(false);
@@ -141,14 +141,14 @@ const CreateInteractionPage = () => {
 
     const displayRating = hoveredRating !== null ? hoveredRating : rating;
 
-    const loadTrackPreview = async (track: TrackSummary | null) => {
-        if(track == null) return;
-        if(track.previewUrl) return;
-        const preview = await getTrackPreviewUrl(track.spotifyId);
-        if(preview){
-            track.previewUrl = preview;
-        }
-    }
+    // const loadTrackPreview = async (track: TrackSummary | null) => {
+    //     if(track == null) return;
+    //     if(track.previewUrl) return;
+    //     const preview = await getTrackPreviewUrl(track.spotifyId);
+    //     if(preview){
+    //         track.previewUrl = preview;
+    //     }
+    // }
 
     const handleListenedToggle = () => {
         if (hasListened && !isLiked && rating === null && reviewText.trim() === '') {

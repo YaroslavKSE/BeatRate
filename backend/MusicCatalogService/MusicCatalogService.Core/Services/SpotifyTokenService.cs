@@ -13,7 +13,7 @@ public class SpotifyTokenService : ISpotifyTokenService
     private readonly ILogger<SpotifyTokenService> _logger;
     private string _accessToken;
     private DateTime _tokenExpiryTime = DateTime.MinValue;
-    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
     private DateTime _lastFailureTime = DateTime.MinValue;
     private TimeSpan _retryBackoffPeriod = TimeSpan.FromMinutes(5);
     private bool _isInFailureMode = false;
@@ -32,7 +32,7 @@ public class SpotifyTokenService : ISpotifyTokenService
             var timeSinceLastFailure = DateTime.UtcNow - _lastFailureTime;
             if (timeSinceLastFailure < _retryBackoffPeriod)
             {
-                _logger.LogWarning("Spotify token service in failure mode. Next retry in {TimeRemaining} seconds", 
+                _logger.LogWarning("Spotify token service in failure mode. Next retry in {TimeRemaining} seconds",
                     (_retryBackoffPeriod - timeSinceLastFailure).TotalSeconds);
                 return TokenResult.Failure();
             }
@@ -58,9 +58,7 @@ public class SpotifyTokenService : ISpotifyTokenService
         {
             // Double-check in case another thread already refreshed the token
             if (DateTime.UtcNow < _tokenExpiryTime && !string.IsNullOrEmpty(_accessToken))
-            {
                 return TokenResult.Success(_accessToken);
-            }
 
             _logger.LogInformation("Requesting new Spotify access token");
 
@@ -85,31 +83,31 @@ public class SpotifyTokenService : ISpotifyTokenService
                 {
                     _logger.LogError("Failed to get Spotify token. Status: {Status}, Response: {Response}",
                         response.StatusCode, responseContent);
-                    
+
                     // Set failure mode and record the time
                     _isInFailureMode = true;
                     _lastFailureTime = DateTime.UtcNow;
-                    
+
                     return TokenResult.Failure();
                 }
 
                 _logger.LogInformation("Successfully obtained new Spotify token");
 
                 var tokenResponse = JsonSerializer.Deserialize<SpotifyTokenResponse>(responseContent,
-                    new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                    new JsonSerializerOptions {PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
 
                 if (tokenResponse != null)
                 {
                     _accessToken = tokenResponse.AccessToken;
                     _tokenExpiryTime = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn - 60);
                     _logger.LogDebug("Token will expire at {ExpiryTime}", _tokenExpiryTime);
-                    
+
                     // Reset failure mode
                     _isInFailureMode = false;
-                    
+
                     return TokenResult.Success(_accessToken);
                 }
-                
+
                 // If we get here, something went wrong with token response
                 _isInFailureMode = true;
                 _lastFailureTime = DateTime.UtcNow;

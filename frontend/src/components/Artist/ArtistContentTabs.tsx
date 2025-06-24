@@ -6,7 +6,7 @@ import EmptyState from '../common/EmptyState';
 import AlbumCard from "./AlbumCard.tsx";
 import TrackRow from "./TrackRow.tsx";
 import TabButton from "./TabButton.tsx";
-import {getSeveralPreviewsUrl} from "../../utils/preview-extractor.ts";
+// import {getSeveralPreviewsUrl} from "../../utils/preview-extractor.ts";
 
 interface ArtistContentTabsProps {
     activeTab: 'overview' | 'albums' | 'top-tracks';
@@ -37,7 +37,7 @@ const ArtistContentTabs = ({
         setTracksError(null);
         try {
             const data = await CatalogService.getArtistTopTracks(artist.spotifyId);
-            loadTopPreviews(artist.spotifyId, data.tracks);
+            // loadTopPreviews(artist.spotifyId, data.tracks);
             setTopTracks(data.tracks);
         } catch (error) {
             console.error('Error fetching top tracks:', error);
@@ -95,18 +95,18 @@ const ArtistContentTabs = ({
         };
     }, [audio]);
 
-    const loadTopPreviews = async (spotifyId: string, tracks: TrackSummary[]) => {
-        if(tracks == null) return;
-        if(tracks[0].previewUrl) return;
-        const previewsArray = await getSeveralPreviewsUrl(spotifyId, "artist");
-        let i = 0;
-        if(previewsArray){
-            for(const track of tracks){
-                track.previewUrl = previewsArray[i];
-                i++;
-            }
-        }
-    }
+    // const loadTopPreviews = async (spotifyId: string, tracks: TrackSummary[]) => {
+    //     if(tracks == null) return;
+    //     if(tracks[0].previewUrl) return;
+    //     const previewsArray = await getSeveralPreviewsUrl(spotifyId, "artist");
+    //     let i = 0;
+    //     if(previewsArray){
+    //         for(const track of tracks){
+    //             track.previewUrl = previewsArray[i];
+    //             i++;
+    //         }
+    //     }
+    // }
 
     const loadMoreAlbums = () => {
         const newOffset = albumsOffset + 20;

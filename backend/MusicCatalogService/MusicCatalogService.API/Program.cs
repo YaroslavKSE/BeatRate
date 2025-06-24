@@ -65,6 +65,15 @@ builder.Services.AddScoped<ICacheService, DistributedCacheService>();
 builder.Services.AddSingleton<ISpotifyTokenService, SpotifyTokenService>();
 builder.Services.AddHttpClient<ISpotifyApiClient, SpotifyApiClient>();
 
+// Register Spotify Preview Extractor with its own HttpClient
+builder.Services.AddHttpClient<ISpotifyPreviewExtractor, SpotifyPreviewExtractor>(client =>
+{
+    // Configure HttpClient specifically for Spotify embed requests
+    client.DefaultRequestHeaders.Add("User-Agent", 
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+    client.Timeout = TimeSpan.FromSeconds(30); // Set reasonable timeout for web scraping
+});
+
 // Configure rate limiting
 var spotifySettings = builder.Configuration.GetSection("Spotify").Get<SpotifySettings>();
 builder.Services.AddRateLimiter(options =>

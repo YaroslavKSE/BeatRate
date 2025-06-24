@@ -32,7 +32,7 @@ public class SearchService : ISearchService
         if (string.IsNullOrWhiteSpace(query))
             throw new ArgumentException("Search query cannot be empty", nameof(query));
 
-        if (string.IsNullOrWhiteSpace(type)) 
+        if (string.IsNullOrWhiteSpace(type))
             throw new ArgumentException("Search type cannot be empty", nameof(type));
 
         // Ensure limit is within acceptable range
@@ -50,7 +50,7 @@ public class SearchService : ISearchService
         }
 
         // Try Spotify API first
-        try 
+        try
         {
             // Attempt to search via Spotify API
             var searchResponse = await _spotifyApiClient.SearchAsync(query, type, limit, offset);
@@ -81,7 +81,7 @@ public class SearchService : ISearchService
 
         return localResult;
     }
-    
+
     private SearchResultDto MapToSearchResultDto(SpotifySearchResponse response, string query, string type, int limit,
         int offset)
     {
@@ -251,7 +251,6 @@ public class SearchService : ISearchService
 
         // Map albums
         if (response.Albums?.Items != null)
-        {
             result.Albums = response.Albums.Items.Select(album => new AlbumSummaryDto
             {
                 SpotifyId = album.Id,
@@ -269,9 +268,7 @@ public class SearchService : ISearchService
                 }).ToList(),
                 ExternalUrls = album.ExternalUrls != null ? new List<string> {album.ExternalUrls.Spotify} : null
             }).ToList();
-        }
 
         return result;
-
     }
 }

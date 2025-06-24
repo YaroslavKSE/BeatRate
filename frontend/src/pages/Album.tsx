@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Disc } from 'lucide-react';
 import CatalogService, {AlbumDetail, TrackDetail, TrackSummary} from '../api/catalog';
 import EmptyState from '../components/common/EmptyState';
-import {getSeveralPreviewsUrl, getTrackPreviewUrl} from '../utils/preview-extractor';
+// import {getSeveralPreviewsUrl, getTrackPreviewUrl} from '../utils/preview-extractor';
 import AlbumHeader from '../components/Album/AlbumHeader';
 import AlbumContentTabs from '../components/Album/AlbumContentTabs';
 import LoadingState from '../components/Album/LoadingState';
@@ -46,7 +46,7 @@ const Album = () => {
                     setTracksOffset(albumData.tracks.length);
                     setTracksTotal(albumData.totalTracks || albumData.tracks.length);
                 }
-                loadAlbumPreviews(albumData);
+                // loadAlbumPreviews(albumData);
                 setAlbum(albumData);
             } catch (err) {
                 console.error('Error fetching album details:', err);
@@ -71,21 +71,21 @@ const Album = () => {
         };
     }, []);
 
-    const loadAlbumPreviews = async (albumData: AlbumDetail | null) => {
-        console.log("reloading previews");
-        if(albumData == null) return;
-        if(albumData.tracks.length < 50 && albumData.tracks[0].previewUrl) return;
-        const previewsArray = await getSeveralPreviewsUrl(albumData.spotifyId);
-        let i = 0;
-        if(previewsArray){
-            for(const track of albumData.tracks){
-                if (i < previewsArray.length) {
-                    track.previewUrl = previewsArray[i];
-                    i++;
-                }
-            }
-        }
-    };
+    // const loadAlbumPreviews = async (albumData: AlbumDetail | null) => {
+    //     console.log("reloading previews");
+    //     if(albumData == null) return;
+    //     if(albumData.tracks.length < 50 && albumData.tracks[0].previewUrl) return;
+    //     const previewsArray = await getSeveralPreviewsUrl(albumData.spotifyId);
+    //     let i = 0;
+    //     if(previewsArray){
+    //         for(const track of albumData.tracks){
+    //             if (i < previewsArray.length) {
+    //                 track.previewUrl = previewsArray[i];
+    //                 i++;
+    //             }
+    //         }
+    //     }
+    // };
 
     const loadMoreTracks = async () => {
         if (!id || !album || loadingMoreTracks || tracksOffset >= tracksTotal) return;
@@ -110,9 +110,9 @@ const Album = () => {
 
             // Update the tracksOffset for next pagination
             setTracksOffset(tracksOffset + newTracks.length);
-            if(tracksOffset <= 99){
-                loadAlbumPreviews(updatedAlbum);
-            }
+            // if(tracksOffset <= 99){
+            //     loadAlbumPreviews(updatedAlbum);
+            // }
 
             setAlbum(updatedAlbum);
 
@@ -132,10 +132,10 @@ const Album = () => {
             }
             setPlayingTrack(null);
         } else {
-            if(!track.previewUrl && track.trackNumber && track.trackNumber > 100){
-                track.previewUrl = await getTrackPreviewUrl(track.spotifyId) as string;
-                console.log("track preview extracted");
-            }
+            // if(!track.previewUrl && track.trackNumber && track.trackNumber > 100){
+            //     track.previewUrl = await getTrackPreviewUrl(track.spotifyId) as string;
+            //     console.log("track preview extracted");
+            // }
             const previewUrl = track.previewUrl;
             if (!previewUrl) return;
             // Stop any currently playing track
