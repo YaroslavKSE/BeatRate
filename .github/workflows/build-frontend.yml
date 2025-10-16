@@ -28,7 +28,7 @@ env:
   APP_NAME: music-app-frontend
   APP_DIR: frontend
   VERSION_FILE: frontend/VERSION
-  VITE_API_BASE_URL: https://dev.beatrate.app/api/v1
+  VITE_API_BASE_URL: https://beatrate.app/api/v1
 
 jobs:
   build-and-publish:
