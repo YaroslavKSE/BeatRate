@@ -459,8 +459,8 @@ namespace MusicInteraction.Infrastructure.PostgreSQL
         public async Task<ReviewLike> AddReviewLike(Guid reviewId, string userId)
         {
             // Check if the review exists
-            var reviewExists = await _dbContext.Reviews.AnyAsync(r => r.ReviewId == reviewId);
-            if (!reviewExists)
+            var reviewEntity = await _dbContext.Reviews.FirstOrDefaultAsync(r => r.ReviewId == reviewId);
+            if (reviewEntity == null)
             {
                 throw new KeyNotFoundException($"Review with ID {reviewId} not found");
             }
@@ -480,6 +480,11 @@ namespace MusicInteraction.Infrastructure.PostgreSQL
             var reviewLikeEntity = ReviewLikeMapper.ToEntity(reviewLike);
 
             await _dbContext.ReviewLikes.AddAsync(reviewLikeEntity);
+
+            // Mark review as dirty since like count changed
+            reviewEntity.IsScoreDirty = true;
+            _dbContext.Reviews.Update(reviewEntity);
+
             await _dbContext.SaveChangesAsync();
 
             return reviewLike;
@@ -493,6 +498,14 @@ namespace MusicInteraction.Infrastructure.PostgreSQL
             if (likeEntity == null)
             {
                 return false;
+            }
+
+            var reviewEntity = await _dbContext.Reviews.FirstOrDefaultAsync(r => r.ReviewId == reviewId);
+            if (reviewEntity != null)
+            {
+                // Mark review as dirty since like count changed
+                reviewEntity.IsScoreDirty = true;
+                _dbContext.Reviews.Update(reviewEntity);
             }
 
             _dbContext.ReviewLikes.Remove(likeEntity);
@@ -510,8 +523,8 @@ namespace MusicInteraction.Infrastructure.PostgreSQL
         public async Task<ReviewComment> AddReviewComment(Guid reviewId, string userId, string commentText)
         {
             // Check if the review exists
-            var reviewExists = await _dbContext.Reviews.AnyAsync(r => r.ReviewId == reviewId);
-            if (!reviewExists)
+            var reviewEntity = await _dbContext.Reviews.FirstOrDefaultAsync(r => r.ReviewId == reviewId);
+            if (reviewEntity == null)
             {
                 throw new KeyNotFoundException($"Review with ID {reviewId} not found");
             }
@@ -521,6 +534,10 @@ namespace MusicInteraction.Infrastructure.PostgreSQL
             var commentEntity = ReviewCommentMapper.ToEntity(reviewComment);
 
             await _dbContext.ReviewComments.AddAsync(commentEntity);
+
+            reviewEntity.IsScoreDirty = true;
+            _dbContext.Reviews.Update(reviewEntity);
+
             await _dbContext.SaveChangesAsync();
 
             return reviewComment;
@@ -538,9 +555,12 @@ namespace MusicInteraction.Infrastructure.PostgreSQL
             }
 
             // Only allow the comment owner to delete it
-            if (commentEntity.UserId != userId)
+            var reviewEntity = await _dbContext.Reviews.FirstOrDefaultAsync(r => r.ReviewId == commentEntity.ReviewId);
+            if (reviewEntity != null)
             {
-                return false;
+                // Mark review as dirty since comment count changed
+                reviewEntity.IsScoreDirty = true;
+                _dbContext.Reviews.Update(reviewEntity);
             }
 
             _dbContext.ReviewComments.Remove(commentEntity);
