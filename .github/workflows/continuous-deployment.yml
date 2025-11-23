@@ -29,7 +29,7 @@ on:
           - music-lists
 
 env:
-  EC2_INSTANCE_ID: i-06c5b6c0c7c8e1c22
+  EC2_INSTANCE_ID: i-0a9cb9f79f91a50fd
   DEPLOY_DIR: /home/ec2-user/deploy
   SCRIPTS_DIR: /home/ec2-user/scripts
 
